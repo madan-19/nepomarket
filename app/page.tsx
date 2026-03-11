@@ -2,10 +2,28 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
+interface PollOption {
+  id: string
+  poll_id: string
+  label: string
+  sort_order: number
+  votes?: number
+  percentage?: number
+}
+
+interface Poll {
+  id: string
+  question: string
+  category: string
+  is_active: boolean
+  poll_options: PollOption[]
+  total_votes?: number
+}
+
 export default function Home() {
-  const [polls, setPolls] = useState([])
+  const [polls, setPolls] = useState<Poll[]>([])
   const [loading, setLoading] = useState(true)
-  const [voted, setVoted] = useState({})
+  const [voted, setVoted] = useState<Record<string, string>>({})
 
   useEffect(() => {
     fetchPolls()
@@ -20,23 +38,23 @@ export default function Home() {
 
     if (pollsData) {
       const pollsWithVotes = await Promise.all(
-        pollsData.map(async (poll) => {
+        pollsData.map(async (poll: Poll) => {
           const { data: votes } = await supabase
             .from('votes')
             .select('option_id')
             .eq('poll_id', poll.id)
 
           const voteCounts: Record<string, number> = {}
-          poll.poll_options.forEach(opt => voteCounts[opt.id] = 0)
-          votes?.forEach(v => {
+          poll.poll_options.forEach((opt: PollOption) => voteCounts[opt.id] = 0)
+          votes?.forEach((v: { option_id: string }) => {
             if (voteCounts[v.option_id] !== undefined)
               voteCounts[v.option_id]++
           })
 
           const total = Object.values(voteCounts).reduce((a, b) => a + b, 0)
           const optionsWithPct = poll.poll_options
-            .sort((a, b) => a.sort_order - b.sort_order)
-            .map(opt => ({
+            .sort((a: PollOption, b: PollOption) => a.sort_order - b.sort_order)
+            .map((opt: PollOption) => ({
               ...opt,
               votes: voteCounts[opt.id],
               percentage: total > 0 ? Math.round((voteCounts[opt.id] / total) * 100) : 0
@@ -50,9 +68,8 @@ export default function Home() {
     setLoading(false)
   }
 
-  async function castVote(pollId, optionId) {
+  async function castVote(pollId: string, optionId: string) {
     if (voted[pollId]) return
-
     await supabase.from('votes').insert({ poll_id: pollId, option_id: optionId })
     setVoted(prev => ({ ...prev, [pollId]: optionId }))
     fetchPolls()
@@ -65,7 +82,6 @@ export default function Home() {
       color: '#F5EDD8',
       fontFamily: "'Syne', sans-serif"
     }}>
-      {/* NAV */}
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -86,8 +102,7 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* HERO */}
-      <div style={{ paddingTop: '120px', padding: '120px 40px 20px', maxWidth: '900px', margin: '0 auto' }}>
+      <div style={{ padding: '120px 40px 20px', maxWidth: '900px', margin: '0 auto' }}>
         <div style={{
           fontFamily: "'DM Mono', monospace", fontSize: '0.65rem',
           color: '#DC143C', letterSpacing: '0.15em', textTransform: 'uppercase',
@@ -111,7 +126,6 @@ export default function Home() {
         </p>
       </div>
 
-      {/* POLLS */}
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 40px 80px' }}>
         {loading ? (
           <div style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.75rem', color: 'rgba(245,237,216,0.3)' }}>
@@ -129,7 +143,6 @@ export default function Home() {
               borderRadius: '12px', padding: '32px',
               marginBottom: '24px', position: 'relative', overflow: 'hidden'
             }}>
-              {/* Glow */}
               <div style={{
                 position: 'absolute', top: '-60px', right: '-60px',
                 width: '200px', height: '200px',
@@ -137,7 +150,6 @@ export default function Home() {
                 pointerEvents: 'none'
               }} />
 
-              {/* Label */}
               <div style={{
                 fontFamily: "'DM Mono', monospace", fontSize: '0.6rem',
                 letterSpacing: '0.15em', textTransform: 'uppercase',
@@ -152,7 +164,6 @@ export default function Home() {
                 Live Forecast · {poll.category || 'Nepal'}
               </div>
 
-              {/* Question */}
               <div style={{
                 fontFamily: "'Instrument Serif', serif",
                 fontSize: '1.3rem', lineHeight: 1.35,
@@ -161,8 +172,7 @@ export default function Home() {
                 {poll.question}
               </div>
 
-              {/* Options */}
-              {poll.poll_options.map((opt, i) => {
+              {poll.poll_options.map((opt: PollOption, i: number) => {
                 const hasVoted = voted[poll.id]
                 const isMyVote = voted[poll.id] === opt.id
                 const showResults = !!hasVoted
@@ -188,7 +198,6 @@ export default function Home() {
                       )}
                     </div>
 
-                    {/* Bar / Button */}
                     <div
                       onClick={() => castVote(poll.id, opt.id)}
                       style={{
@@ -223,7 +232,6 @@ export default function Home() {
                 )
               })}
 
-              {/* Meta */}
               <div style={{
                 display: 'flex', justifyContent: 'space-between',
                 marginTop: '20px', paddingTop: '16px',
