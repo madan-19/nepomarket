@@ -26,7 +26,7 @@ export default function Home() {
             .select('option_id')
             .eq('poll_id', poll.id)
 
-          const voteCounts = {}
+          const voteCounts: Record<string, number> = {}
           poll.poll_options.forEach(opt => voteCounts[opt.id] = 0)
           votes?.forEach(v => {
             if (voteCounts[v.option_id] !== undefined)
