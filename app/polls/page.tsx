@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 
+// ── Types ─────────────────────────────────────────────────────
 interface Option { id: string; label: string; sort_order: number }
 interface Poll {
   id: string; question: string; category: string
@@ -12,6 +13,95 @@ interface Poll {
   userVote: string | null
 }
 
+type Lang = 'en' | 'ne'
+
+// ── i18n ──────────────────────────────────────────────────────
+// DB fields support "English|||नेपाली" — if no delimiter, same text for both
+function bitext(raw: string, lang: Lang): string {
+  if (!raw) return ''
+  const parts = raw.split('|||')
+  if (parts.length >= 2) return lang === 'ne' ? parts[1].trim() : parts[0].trim()
+  return parts[0].trim()
+}
+
+const UI: Record<Lang, Record<string, string>> = {
+  en: {
+    brand: 'Nepo', brandAccent: 'market',
+    tagline: 'Live Forecasts · Nepal',
+    hero: 'What Nepal', heroAccent: 'Really', heroEnd: 'Thinks',
+    welcomeBack: 'Welcome back,', welcomeSuffix: '. Vote on real issues below.',
+    subtitle: 'Sign in to cast your vote. Watch the crowd shift in real time.',
+    langLabel: 'नेपाली',
+    forecasters: 'forecasters', forecaster: 'forecaster',
+    signIn: 'Sign in to vote →', signInBtn: 'Sign In', signOut: 'Sign Out',
+    closesIn: 'Closes in', closingSoon: 'Closing soon',
+    live: 'Live Forecast', share: 'Share',
+    noPolls: 'No active polls right now.',
+    voted: 'You voted!', votePrompt: 'Tap an option to vote',
+    d: 'd', h: 'h',
+    loading: 'Loading...',
+    activePolls: 'Active Polls', totalVotes: 'Total Votes', yourVotes: 'Your Votes',
+    shareTitle: 'Share this forecast', storyPreview: 'Story Card Preview (9:16)',
+    download: 'Download Card', generating: 'Generating...',
+    copyLink: 'Copy Link', copied: 'Copied!',
+    shareDirect: 'Share directly', post: 'Post',
+    igNote: 'Instagram: tap Instagram → download card → open the app → Story → select from gallery.',
+    livePoll: 'Live Poll', forecastersVoted: 'forecasters voted',
+    castVote: 'Cast your vote →', visitUs: 'Visit us at',
+    footer: 'Nepomarket · Non-monetary civic polling', privacyLabel: 'Privacy & Policy',
+  },
+  ne: {
+    brand: 'Nepo', brandAccent: 'market',
+    tagline: 'प्रत्यक्ष जनमत · नेपाल',
+    hero: 'नेपालले वास्तवमा के', heroAccent: '', heroEnd: 'सोच्छ',
+    welcomeBack: 'स्वागत छ,', welcomeSuffix: '। तलका मुद्दामा मत दिनुहोस्।',
+    subtitle: 'मत दिन साइन इन गर्नुहोस्। भीडको धारा हेर्नुहोस्।',
+    langLabel: 'English',
+    forecasters: 'मतदाताहरू', forecaster: 'मतदाता',
+    signIn: 'मत दिन साइन इन गर्नुहोस् →', signInBtn: 'साइन इन', signOut: 'साइन आउट',
+    closesIn: 'बन्द हुन बाँकी', closingSoon: 'छिट्टै बन्द हुँदैछ',
+    live: 'प्रत्यक्ष जनमत', share: 'साझा',
+    noPolls: 'अहिले कुनै सक्रिय मतदान छैन।',
+    voted: 'तपाईंले मत दिनुभयो!', votePrompt: 'मत दिन विकल्प छान्नुहोस्',
+    d: 'दिन', h: 'घण्टा',
+    loading: 'लोड हुँदैछ...',
+    activePolls: 'सक्रिय मतदान', totalVotes: 'कुल मतहरू', yourVotes: 'तपाईंको मत',
+    shareTitle: 'यो जनमत साझा गर्नुहोस्', storyPreview: 'स्टोरी कार्ड पूर्वावलोकन (९:१६)',
+    download: 'कार्ड डाउनलोड', generating: 'बनाउँदै...',
+    copyLink: 'लिंक कपी', copied: 'कपी भयो!',
+    shareDirect: 'सिधा साझा गर्नुहोस्', post: 'पोस्ट',
+    igNote: 'इन्स्टाग्राम: ट्याप गर्नुहोस् → कार्ड डाउनलोड → एप खोल्नुहोस् → स्टोरी → ग्यालेरीबाट छान्नुहोस्।',
+    livePoll: 'प्रत्यक्ष मतदान', forecastersVoted: 'मतदाताहरूले मत दिए',
+    castVote: 'आफ्नो मत दिनुहोस् →', visitUs: 'हामीलाई भेट्नुहोस्',
+    footer: 'Nepomarket · गैर-मौद्रिक नागरिक मतदान', privacyLabel: 'गोपनीयता र नीति',
+  },
+}
+
+// ── Animated Bar Sub-component ────────────────────────────────
+function AnimatedBar({ pct, idx, show }: { pct: number; idx: number; show: boolean }) {
+  const [width, setWidth] = useState(0)
+  useEffect(() => {
+    if (show) { const t = setTimeout(() => setWidth(pct), 60); return () => clearTimeout(t) }
+    else setWidth(0)
+  }, [pct, show])
+
+  const fills = [
+    'linear-gradient(90deg, #DC143C, #FF4060)',
+    'rgba(245,237,216,0.3)',
+    'rgba(245,237,216,0.15)',
+  ]
+  return (
+    <div style={{
+      position: 'absolute', top: 0, left: 0, bottom: 0,
+      background: show ? fills[Math.min(idx, 2)] : 'transparent',
+      width: `${width}%`,
+      transition: 'width 0.9s cubic-bezier(0.16, 1, 0.3, 1)',
+      borderRadius: 6, opacity: 0.18,
+    }} />
+  )
+}
+
+// ── Main Page ─────────────────────────────────────────────────
 export default function PollsPage() {
   const [polls, setPolls] = useState<Poll[]>([])
   const [user, setUser] = useState<{ id: string; email: string } | null>(null)
@@ -21,7 +111,17 @@ export default function PollsPage() {
   const captureRef = useRef<HTMLDivElement>(null)
   const [downloading, setDownloading] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [lang, setLang] = useState<Lang>('en')
+  const [langFlip, setLangFlip] = useState(false)
 
+  const t = UI[lang]
+
+  function toggleLang() {
+    setLangFlip(true)
+    setTimeout(() => { setLang(l => l === 'en' ? 'ne' : 'en'); setLangFlip(false) }, 200)
+  }
+
+  // ── Supabase logic (untouched) ──────────────────────────────
   useEffect(() => { init() }, [])
 
   async function init() {
@@ -61,6 +161,7 @@ export default function PollsPage() {
     await fetchPolls(user.id)
   }
 
+  // ── Share helpers (untouched) ───────────────────────────────
   async function downloadCard() {
     if (!captureRef.current) return
     setDownloading(true)
@@ -71,7 +172,7 @@ export default function PollsPage() {
         width: 1080, height: 1920, logging: false,
       })
       const link = document.createElement('a')
-      link.download = `nepomarket-poll.png`
+      link.download = `nepalpulse-poll.png`
       link.href = canvas.toDataURL('image/png')
       link.click()
     } catch (e) { console.error(e) }
@@ -81,12 +182,16 @@ export default function PollsPage() {
   async function downloadAndShare(platform: string) {
     await downloadCard()
     if (platform === 'instagram') {
-      setTimeout(() => alert('Card saved! Open Instagram → tap + → Story → select the image from your gallery.'), 500)
+      setTimeout(() => alert(lang === 'ne'
+        ? 'कार्ड सेभ भयो! इन्स्टाग्राम खोल्नुहोस् → + ट्याप → स्टोरी → ग्यालेरीबाट छान्नुहोस्।'
+        : 'Card saved! Open Instagram → tap + → Story → select the image from your gallery.'
+      ), 500)
     }
   }
 
   function shareToX() {
-    const text = shareModal ? `"${shareModal.question}" — What do you think? Cast your vote on Nepomarket 🇳🇵` : ''
+    const q = shareModal ? bitext(shareModal.question, 'en') : ''
+    const text = `"${q}" — What do you think? Cast your vote on Nepomarket 🇳🇵`
     const url = 'https://nepomarket.com/polls'
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank')
   }
@@ -102,6 +207,7 @@ export default function PollsPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  // ── Helpers ─────────────────────────────────────────────────
   function getPct(poll: Poll, optionId: string) {
     if (poll.totalVotes === 0) return 0
     return Math.round((poll.votes[optionId] / poll.totalVotes) * 100)
@@ -111,25 +217,24 @@ export default function PollsPage() {
     if (!closes_at) return null
     const diff = new Date(closes_at).getTime() - Date.now()
     const days = Math.floor(diff / 86400000)
-    if (days > 0) return `Closes in ${days}d`
+    if (days > 0) return `${t.closesIn} ${days}${t.d}`
     const hrs = Math.floor(diff / 3600000)
-    if (hrs > 0) return `Closes in ${hrs}h`
-    return 'Closing soon'
+    if (hrs > 0) return `${t.closesIn} ${hrs}${t.h}`
+    return t.closingSoon
   }
 
-  const COLORS = ['#DC143C', 'rgba(245,237,216,0.35)', 'rgba(245,237,216,0.18)']
-  const FILLS = [
-    'linear-gradient(90deg,#DC143C,#FF4060)',
-    'rgba(245,237,216,0.3)',
-    'rgba(245,237,216,0.15)'
-  ]
+  // ── Stats ───────────────────────────────────────────────────
+  const totalVoteCount = polls.reduce((s, p) => s + p.totalVotes, 0)
+  const userVoteCount = polls.filter(p => p.userVote !== null).length
 
+  // ── Loading ─────────────────────────────────────────────────
   if (loading) return (
     <main style={{ background: '#0D0D0D', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <span style={{ fontFamily: "'DM Mono',monospace", fontSize: '0.75rem', color: 'rgba(245,237,216,0.3)' }}>Loading...</span>
+      <span style={{ fontFamily: "'DM Mono',monospace", fontSize: '0.75rem', color: 'rgba(245,237,216,0.3)' }}>{t.loading}</span>
     </main>
   )
 
+  // ── Render ──────────────────────────────────────────────────
   return (
     <main style={{ background: '#0D0D0D', minHeight: '100vh', color: '#F5EDD8', fontFamily: "'Syne',sans-serif" }}>
       <style>{`
@@ -138,14 +243,18 @@ export default function PollsPage() {
         body { background: #0D0D0D; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
         @keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+        @keyframes slideSwitch { 0%{transform:translateY(0);opacity:1} 40%{transform:translateY(-6px);opacity:0} 60%{transform:translateY(6px);opacity:0} 100%{transform:translateY(0);opacity:1} }
 
-        .vote-btn { width:100%; background:rgba(245,237,216,0.04); border:1px solid rgba(245,237,216,0.1); border-radius:6px; padding:0; cursor:pointer; overflow:hidden; transition:border-color 0.2s; text-align:left; margin-bottom:10px; }
+        .lang-toggle { background:rgba(245,237,216,0.04); border:1px solid rgba(245,237,216,0.14); border-radius:8px; padding:7px 14px; cursor:pointer; display:flex; align-items:center; gap:8px; transition:all 0.25s; }
+        .lang-toggle:hover { border-color:rgba(220,20,60,0.5); background:rgba(220,20,60,0.08); }
+        .lang-flip { animation: slideSwitch 0.4s ease; }
+
+        .vote-btn { width:100%; background:rgba(245,237,216,0.04); border:1px solid rgba(245,237,216,0.1); border-radius:6px; padding:0; cursor:pointer; overflow:hidden; transition:border-color 0.2s; text-align:left; margin-bottom:10px; position:relative; }
         .vote-btn:hover:not(:disabled) { border-color:rgba(220,20,60,0.4); }
         .vote-btn.voted { border-color:rgba(220,20,60,0.6); cursor:default; }
         .vote-inner { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; position:relative; z-index:1; }
-        .vote-bar { position:absolute; top:0; left:0; bottom:0; background:rgba(220,20,60,0.09); transition:width 0.9s cubic-bezier(0.16,1,0.3,1); border-radius:6px; }
         .vote-label { font-family:'DM Mono',monospace; font-size:0.78rem; color:#F5EDD8; position:relative; z-index:1; }
-        .vote-pct { font-family:'DM Mono',monospace; font-size:0.78rem; font-weight:500; color:#DC143C; position:relative; z-index:1; }
+        .vote-pct { font-family:'DM Mono',monospace; font-size:0.78rem; font-weight:500; position:relative; z-index:1; }
 
         .share-btn { background:transparent; border:1px solid rgba(245,237,216,0.14); color:rgba(245,237,216,0.5); font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.08em; text-transform:uppercase; padding:7px 14px; border-radius:4px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
         .share-btn:hover { border-color:rgba(245,237,216,0.3); color:#F5EDD8; }
@@ -158,28 +267,10 @@ export default function PollsPage() {
         .close-btn:hover { color:#F5EDD8; }
         .modal-body { padding:20px 22px; }
 
-        /* PREVIEW WRAP */
         .card-preview-wrap { width:378px; height:672px; overflow:hidden; border-radius:10px; border:1px solid rgba(245,237,216,0.1); margin-bottom:18px; background:#0D0D0D; }
+        .story-card-capture { width:1080px; height:1920px; position:fixed; left:-9999px; top:0; background:#0D0D0D; display:grid; grid-template-rows:auto auto 1fr auto; overflow:hidden; }
+        .story-card { width:1080px; height:1920px; transform:scale(0.35); transform-origin:top left; flex-shrink:0; position:relative; overflow:hidden; background:#0D0D0D; display:grid; grid-template-rows:auto auto 1fr auto; }
 
-        /* Hidden full-size capture card */
-        .story-card-capture {
-          width:1080px; height:1920px;
-          position:fixed; left:-9999px; top:0;
-          background:#0D0D0D;
-          display:grid;
-          grid-template-rows:auto auto 1fr auto;
-          overflow:hidden;
-        }
-        .story-card {
-          width:1080px; height:1920px;
-          transform:scale(0.35); transform-origin:top left;
-          flex-shrink:0; position:relative; overflow:hidden;
-          background:#0D0D0D;
-          display:grid;
-          grid-template-rows:auto auto 1fr auto;
-        }
-
-        /* Card zones */
         .card-stripe { position:absolute; top:0; left:0; right:0; height:10px; background:#DC143C; }
         .card-glow-br { position:absolute; bottom:-300px; right:-300px; width:1000px; height:1000px; background:radial-gradient(circle,rgba(220,20,60,0.22),transparent 60%); pointer-events:none; }
         .card-glow-tl { position:absolute; top:-200px; left:-200px; width:600px; height:600px; background:radial-gradient(circle,rgba(220,20,60,0.07),transparent 65%); pointer-events:none; }
@@ -191,15 +282,12 @@ export default function PollsPage() {
         .card-badge { background:rgba(220,20,60,0.12); border:1.5px solid rgba(220,20,60,0.35); border-radius:100px; padding:12px 28px; display:flex; align-items:center; gap:12px; }
         .card-badge-dot { width:12px; height:12px; border-radius:50%; background:#DC143C; }
         .card-badge-text { font-family:'DM Mono',monospace; font-size:22px; letter-spacing:0.14em; text-transform:uppercase; color:#DC143C; }
-
         .card-divider { margin:60px 96px; height:1px; background:linear-gradient(90deg,#DC143C,rgba(220,20,60,0.1)); position:relative; z-index:1; }
 
         .card-body { padding:60px 96px; display:flex; flex-direction:column; justify-content:center; position:relative; z-index:1; }
         .card-cat { font-family:'DM Mono',monospace; font-size:24px; letter-spacing:0.18em; text-transform:uppercase; color:rgba(245,237,216,0.35); margin-bottom:32px; }
         .card-question { font-family:'Instrument Serif',serif; font-size:96px; line-height:1.04; color:#F5EDD8; margin-bottom:80px; }
-
         .card-bars { display:flex; flex-direction:column; gap:36px; }
-        .card-bar-item {}
         .card-bar-top { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:14px; }
         .card-bar-label { font-family:'DM Mono',monospace; font-size:28px; color:rgba(245,237,216,0.6); }
         .card-bar-pct { font-family:'Instrument Serif',serif; font-size:72px; line-height:1; color:#F5EDD8; }
@@ -210,7 +298,6 @@ export default function PollsPage() {
         .card-fill-2 { height:100%; border-radius:4px; background:rgba(245,237,216,0.14); }
 
         .card-footer { padding:52px 96px 72px; border-top:1px solid rgba(245,237,216,0.07); display:flex; justify-content:space-between; align-items:center; position:relative; z-index:1; }
-        .card-footer-left {}
         .card-forecasters { font-family:'DM Mono',monospace; font-size:24px; color:rgba(245,237,216,0.25); margin-bottom:6px; }
         .card-cta { font-family:'Syne',sans-serif; font-size:26px; font-weight:700; color:rgba(245,237,216,0.5); }
         .card-url-box { text-align:right; }
@@ -218,7 +305,6 @@ export default function PollsPage() {
         .card-url-value { font-family:'Instrument Serif',serif; font-size:34px; color:#F5EDD8; }
         .card-url-value span { color:#DC143C; }
 
-        /* Action buttons */
         .action-row { display:flex; gap:8px; margin-bottom:14px; }
         .dl-btn { flex:1; background:#DC143C; border:none; color:#F5EDD8; font-family:'Syne',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; padding:12px 16px; border-radius:4px; cursor:pointer; transition:background 0.2s; }
         .dl-btn:hover { background:#b01030; }
@@ -236,84 +322,133 @@ export default function PollsPage() {
         .share-note { font-family:'DM Mono',monospace; font-size:0.58rem; color:rgba(245,237,216,0.2); margin-top:10px; line-height:1.7; }
       `}</style>
 
-      {/* NAV */}
-      <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, display:'flex', justifyContent:'space-between', alignItems:'center', padding:'20px 40px', borderBottom:'1px solid rgba(245,237,216,0.12)', background:'rgba(13,13,13,0.9)', backdropFilter:'blur(12px)' }}>
-        <a href="/" style={{ textDecoration:'none', fontFamily:"'Instrument Serif',serif", fontSize:'1.4rem', color:'#F5EDD8' }}>Nepo<span style={{color:'#DC143C'}}>market</span></a>
-        <div style={{ display:'flex', alignItems:'center', gap:'16px' }}>
+      {/* ══ NAV ══════════════════════════════════════════════════ */}
+      <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, display:'flex', justifyContent:'space-between', alignItems:'center', padding:'16px 28px', borderBottom:'1px solid rgba(245,237,216,0.1)', background:'rgba(13,13,13,0.92)', backdropFilter:'blur(14px)' }}>
+        <a href="/" style={{ textDecoration:'none', fontFamily:"'Instrument Serif',serif", fontSize:'1.35rem', color:'#F5EDD8', letterSpacing:'-0.01em' }}>
+          {t.brand}<span style={{color:'#DC143C'}}>{t.brandAccent}</span>
+        </a>
+        <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+          {/* Language Toggle */}
+          <button className="lang-toggle" onClick={toggleLang}>
+            <span style={{ fontSize:'0.95rem' }}>{lang === 'en' ? '🇳🇵' : '🌐'}</span>
+            <span className={langFlip ? 'lang-flip' : ''} style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.72rem', color:'#F5EDD8', letterSpacing:'0.04em', fontWeight:500 }}>
+              {t.langLabel}
+            </span>
+          </button>
           {user ? (
             <>
-              <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.65rem', color:'rgba(245,237,216,0.35)' }}>{user.email}</span>
-              <button onClick={async () => { await supabase.auth.signOut(); window.location.reload() }} style={{ background:'transparent', border:'1px solid rgba(245,237,216,0.12)', color:'rgba(245,237,216,0.4)', fontFamily:"'DM Mono',monospace", fontSize:'0.65rem', padding:'6px 14px', borderRadius:'4px', cursor:'pointer' }}>Sign Out</button>
+              <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.62rem', color:'rgba(245,237,216,0.35)' }}>{user.email}</span>
+              <button onClick={async () => { await supabase.auth.signOut(); window.location.reload() }}
+                style={{ background:'transparent', border:'1px solid rgba(245,237,216,0.12)', color:'rgba(245,237,216,0.4)', fontFamily:"'DM Mono',monospace", fontSize:'0.65rem', padding:'6px 14px', borderRadius:'4px', cursor:'pointer' }}>
+                {t.signOut}
+              </button>
             </>
           ) : (
-            <a href="/auth" style={{ background:'#DC143C', color:'#F5EDD8', fontFamily:"'Syne',sans-serif", fontSize:'0.75rem', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', padding:'8px 18px', borderRadius:'4px', textDecoration:'none' }}>Sign In</a>
+            <a href="/auth" style={{ background:'#DC143C', color:'#F5EDD8', fontFamily:"'Syne',sans-serif", fontSize:'0.75rem', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', padding:'8px 18px', borderRadius:'4px', textDecoration:'none' }}>
+              {t.signInBtn}
+            </a>
           )}
         </div>
       </nav>
 
-      {/* POLLS */}
-      <div style={{ maxWidth:'760px', margin:'0 auto', padding:'110px 20px 80px' }}>
+      {/* ══ CONTENT ══════════════════════════════════════════════ */}
+      <div style={{ maxWidth:'760px', margin:'0 auto', padding:'100px 20px 80px' }}>
+        {/* Header */}
         <div style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.65rem', color:'#DC143C', letterSpacing:'0.15em', textTransform:'uppercase', marginBottom:'12px', display:'flex', alignItems:'center', gap:'8px' }}>
           <span style={{ width:'20px', height:'1px', background:'#DC143C', display:'inline-block' }}></span>
-          Live Forecasts · Nepal
+          {t.tagline}
         </div>
         <h1 style={{ fontFamily:"'Instrument Serif',serif", fontSize:'clamp(2.2rem,5vw,3.5rem)', letterSpacing:'-0.02em', lineHeight:1.1, marginBottom:'12px' }}>
-          What Nepal <em style={{color:'#DC143C'}}>Really</em> Thinks
+          {lang === 'en' ? <>{t.hero} <em style={{color:'#DC143C'}}>{t.heroAccent}</em> {t.heroEnd}</> : <>{t.hero} {t.heroEnd}</>}
         </h1>
-        <p style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.78rem', color:'rgba(245,237,216,0.4)', marginBottom:'48px' }}>
-          {user ? `Welcome back, ${user.email.split('@')[0]}. Vote on real issues below.` : 'Sign in to cast your vote. Watch the crowd shift in real time.'}
+        <p style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.78rem', color:'rgba(245,237,216,0.4)', marginBottom:'32px', lineHeight:1.6 }}>
+          {user ? `${t.welcomeBack} ${user.email.split('@')[0]}${t.welcomeSuffix}` : t.subtitle}
         </p>
 
+        {/* ── Stats Bar ──────────────────────────────────────── */}
+        <div style={{ display:'flex', gap:24, marginBottom:32, padding:'14px 0', borderTop:'1px solid rgba(245,237,216,0.06)', borderBottom:'1px solid rgba(245,237,216,0.06)' }}>
+          {[
+            { val: polls.length, label: t.activePolls },
+            { val: totalVoteCount, label: t.totalVotes },
+            { val: userVoteCount, label: t.yourVotes },
+          ].map(stat => (
+            <div key={stat.label} style={{ flex:1, textAlign:'center' }}>
+              <div style={{ fontFamily:"'Instrument Serif',serif", fontSize:'1.6rem', color:'#DC143C' }}>{stat.val.toLocaleString()}</div>
+              <div style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.55rem', color:'rgba(245,237,216,0.3)', textTransform:'uppercase', letterSpacing:'0.1em' }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── No Polls ───────────────────────────────────────── */}
         {polls.length === 0 && (
-          <div style={{ textAlign:'center', padding:'80px 0', fontFamily:"'DM Mono',monospace", fontSize:'0.75rem', color:'rgba(245,237,216,0.2)' }}>No active polls right now.</div>
+          <div style={{ textAlign:'center', padding:'80px 0', fontFamily:"'DM Mono',monospace", fontSize:'0.75rem', color:'rgba(245,237,216,0.2)' }}>{t.noPolls}</div>
         )}
 
-        {polls.map(poll => (
-          <div key={poll.id} style={{ background:'#1A1A1A', border:'1px solid rgba(245,237,216,0.1)', borderRadius:'12px', padding:'28px', marginBottom:'20px', position:'relative', overflow:'hidden' }}>
-            <div style={{ position:'absolute', top:'-40px', right:'-40px', width:'160px', height:'160px', background:'radial-gradient(circle,rgba(220,20,60,0.07),transparent 70%)', pointerEvents:'none' }} />
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'16px', gap:'12px' }}>
-              <div>
-                <div style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.6rem', color:'#DC143C', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:'10px', display:'flex', alignItems:'center', gap:'6px' }}>
-                  <span style={{ width:'6px', height:'6px', borderRadius:'50%', background:'#DC143C', display:'inline-block', animation:'pulse 1.5s infinite' }}></span>
-                  Live Forecast · {poll.category}
-                </div>
-                <div style={{ fontFamily:"'Instrument Serif',serif", fontSize:'1.3rem', lineHeight:1.3, color:'#F5EDD8' }}>{poll.question}</div>
-              </div>
-              <button className="share-btn" onClick={() => setShareModal(poll)}>📤 Share</button>
-            </div>
-            {poll.closes_at && <div style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.6rem', color:'rgba(245,237,216,0.25)', marginBottom:'16px' }}>⏱ {formatExpiry(poll.closes_at)}</div>}
-            {poll.options.map((opt) => {
-              const pct = getPct(poll, opt.id)
-              const hasVoted = poll.userVote !== null
-              const isVoted = poll.userVote === opt.id
-              return (
-                <button key={opt.id} className={`vote-btn ${hasVoted ? 'voted' : ''}`} onClick={() => !hasVoted && castVote(poll.id, opt.id)} disabled={hasVoted}>
-                  <div className="vote-bar" style={{ width: hasVoted ? `${pct}%` : '0%' }}></div>
-                  <div className="vote-inner">
-                    <span className="vote-label">{isVoted ? '✓ ' : ''}{opt.label}</span>
-                    {hasVoted && <span className="vote-pct">{pct}%</span>}
+        {/* ══ POLL CARDS ═════════════════════════════════════════ */}
+        {polls.map(poll => {
+          const hasVoted = poll.userVote !== null
+          return (
+            <div key={poll.id} style={{ background:'#1A1A1A', border:'1px solid rgba(245,237,216,0.1)', borderRadius:'12px', padding:'28px', marginBottom:'20px', position:'relative', overflow:'hidden', animation:'fadeIn 0.4s ease forwards' }}>
+              <div style={{ position:'absolute', top:'-40px', right:'-40px', width:'160px', height:'160px', background:'radial-gradient(circle,rgba(220,20,60,0.08),transparent 70%)', pointerEvents:'none' }} />
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'16px', gap:'12px' }}>
+                <div>
+                  <div style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.6rem', color:'#DC143C', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:'10px', display:'flex', alignItems:'center', gap:'6px' }}>
+                    <span style={{ width:'6px', height:'6px', borderRadius:'50%', background:'#DC143C', display:'inline-block', animation:'pulse 1.5s infinite' }}></span>
+                    {t.live} · {bitext(poll.category, lang)}
                   </div>
-                </button>
-              )
-            })}
-            <div style={{ display:'flex', justifyContent:'space-between', marginTop:'16px', paddingTop:'14px', borderTop:'1px solid rgba(245,237,216,0.06)' }}>
-              <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.6rem', color:'rgba(245,237,216,0.25)' }}>{poll.totalVotes} forecaster{poll.totalVotes !== 1 ? 's' : ''}</span>
-              {!user && <a href="/auth" style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.6rem', color:'#DC143C', textDecoration:'none' }}>Sign in to vote →</a>}
+                  <div style={{ fontFamily:"'Instrument Serif',serif", fontSize:'1.3rem', lineHeight:1.3, color:'#F5EDD8' }}>
+                    {bitext(poll.question, lang)}
+                  </div>
+                </div>
+                <button className="share-btn" onClick={() => setShareModal(poll)}>📤 {t.share}</button>
+              </div>
+
+              {poll.closes_at && <div style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.6rem', color:'rgba(245,237,216,0.25)', marginBottom:'16px' }}>⏱ {formatExpiry(poll.closes_at)}</div>}
+
+              {/* ── Vote Options with Animated Bars ── */}
+              {poll.options.map((opt, idx) => {
+                const pct = getPct(poll, opt.id)
+                const isThis = poll.userVote === opt.id
+                return (
+                  <button key={opt.id} className={`vote-btn ${hasVoted ? 'voted' : ''}`} onClick={() => !hasVoted && castVote(poll.id, opt.id)} disabled={hasVoted}>
+                    <AnimatedBar pct={pct} idx={idx} show={hasVoted} />
+                    <div className="vote-inner">
+                      <span className="vote-label">{isThis ? '✓ ' : ''}{bitext(opt.label, lang)}</span>
+                      {hasVoted && <span className="vote-pct" style={{ color: idx === 0 ? '#DC143C' : 'rgba(245,237,216,0.5)' }}>{pct}%</span>}
+                    </div>
+                  </button>
+                )
+              })}
+
+              {/* ── Card Footer ── */}
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'16px', paddingTop:'14px', borderTop:'1px solid rgba(245,237,216,0.06)' }}>
+                <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.6rem', color:'rgba(245,237,216,0.25)' }}>
+                  {poll.totalVotes} {poll.totalVotes !== 1 ? t.forecasters : t.forecaster}
+                </span>
+                <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.58rem', color: hasVoted ? '#4CAF50' : 'rgba(245,237,216,0.2)', transition:'color 0.3s' }}>
+                  {hasVoted ? t.voted : (!user ? <a href="/auth" style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.58rem', color:'#DC143C', textDecoration:'none' }}>{t.signIn}</a> : t.votePrompt)}
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
-      {/* SHARE MODAL */}
+      {/* ── Footer ───────────────────────────────────────────── */}
+      <div style={{ textAlign:'center', padding:'24px 20px 32px', borderTop:'1px solid rgba(245,237,216,0.06)' }}>
+        <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.58rem', color:'rgba(245,237,216,0.15)', letterSpacing:'0.08em' }}>{t.footer} · <a href="/privacy" style={{ color:'rgba(245,237,216,0.25)', textDecoration:'underline', textUnderlineOffset:'3px', transition:'color 0.2s' }} onMouseEnter={e => (e.currentTarget.style.color = '#DC143C')} onMouseLeave={e => (e.currentTarget.style.color = 'rgba(245,237,216,0.25)')}>{t.privacyLabel}</a></span>
+      </div>
+
+      {/* ══ SHARE MODAL ══════════════════════════════════════════ */}
       {shareModal && (
         <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShareModal(null) }}>
           <div className="modal-box">
             <div className="modal-header">
-              <span className="modal-title">Share this forecast</span>
+              <span className="modal-title">{t.shareTitle}</span>
               <button className="close-btn" onClick={() => setShareModal(null)}>×</button>
             </div>
             <div className="modal-body">
-              <p style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.58rem', color:'rgba(245,237,216,0.25)', marginBottom:'12px', letterSpacing:'0.08em', textTransform:'uppercase' }}>Story Card Preview (9:16)</p>
+              <p style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.58rem', color:'rgba(245,237,216,0.25)', marginBottom:'12px', letterSpacing:'0.08em', textTransform:'uppercase' }}>{t.storyPreview}</p>
 
               {/* CARD PREVIEW — scaled for display */}
               <div className="card-preview-wrap">
@@ -323,20 +458,20 @@ export default function PollsPage() {
                   <div className="card-glow-tl"></div>
                   <div className="card-grid"></div>
                   <div className="card-header">
-                    <div className="card-logo-text">Nepo<span>market</span></div>
-                    <div className="card-badge"><div className="card-badge-dot"></div><span className="card-badge-text">Live Poll</span></div>
+                    <div className="card-logo-text">{t.brand}<span>{t.brandAccent}</span></div>
+                    <div className="card-badge"><div className="card-badge-dot"></div><span className="card-badge-text">{t.livePoll}</span></div>
                   </div>
                   <div className="card-divider"></div>
                   <div className="card-body">
-                    <div className="card-cat">{shareModal.category} · Nepal</div>
-                    <div className="card-question">{shareModal.question}</div>
+                    <div className="card-cat">{bitext(shareModal.category, lang)} · Nepal</div>
+                    <div className="card-question">{bitext(shareModal.question, lang)}</div>
                     <div className="card-bars">
                       {shareModal.options.map((opt, i) => {
                         const pct = getPct(shareModal, opt.id)
                         return (
-                          <div className="card-bar-item" key={opt.id}>
+                          <div key={opt.id}>
                             <div className="card-bar-top">
-                              <span className="card-bar-label">{opt.label}</span>
+                              <span className="card-bar-label">{bitext(opt.label, lang)}</span>
                               <span className={`card-bar-pct ${i === 0 ? 'top' : ''}`}>{pct}%</span>
                             </div>
                             <div className="card-track">
@@ -348,12 +483,12 @@ export default function PollsPage() {
                     </div>
                   </div>
                   <div className="card-footer">
-                    <div className="card-footer-left">
-                      <div className="card-forecasters">{shareModal.totalVotes} forecasters voted</div>
-                      <div className="card-cta">Cast your vote →</div>
+                    <div>
+                      <div className="card-forecasters">{shareModal.totalVotes} {t.forecastersVoted}</div>
+                      <div className="card-cta">{t.castVote}</div>
                     </div>
                     <div className="card-url-box">
-                      <div className="card-url-label">Visit us at</div>
+                      <div className="card-url-label">{t.visitUs}</div>
                       <div className="card-url-value">nepo<span>market</span>.com</div>
                     </div>
                   </div>
@@ -367,20 +502,20 @@ export default function PollsPage() {
                 <div className="card-glow-tl"></div>
                 <div className="card-grid"></div>
                 <div className="card-header">
-                  <div className="card-logo-text">Nepo<span>market</span></div>
-                  <div className="card-badge"><div className="card-badge-dot"></div><span className="card-badge-text">Live Poll</span></div>
+                  <div className="card-logo-text">{t.brand}<span>{t.brandAccent}</span></div>
+                  <div className="card-badge"><div className="card-badge-dot"></div><span className="card-badge-text">{t.livePoll}</span></div>
                 </div>
                 <div className="card-divider"></div>
                 <div className="card-body">
-                  <div className="card-cat">{shareModal.category} · Nepal</div>
-                  <div className="card-question">{shareModal.question}</div>
+                  <div className="card-cat">{bitext(shareModal.category, lang)} · Nepal</div>
+                  <div className="card-question">{bitext(shareModal.question, lang)}</div>
                   <div className="card-bars">
                     {shareModal.options.map((opt, i) => {
                       const pct = getPct(shareModal, opt.id)
                       return (
-                        <div className="card-bar-item" key={opt.id}>
+                        <div key={opt.id}>
                           <div className="card-bar-top">
-                            <span className="card-bar-label">{opt.label}</span>
+                            <span className="card-bar-label">{bitext(opt.label, lang)}</span>
                             <span className={`card-bar-pct ${i === 0 ? 'top' : ''}`}>{pct}%</span>
                           </div>
                           <div className="card-track">
@@ -392,12 +527,12 @@ export default function PollsPage() {
                   </div>
                 </div>
                 <div className="card-footer">
-                  <div className="card-footer-left">
-                    <div className="card-forecasters">{shareModal.totalVotes} forecasters voted</div>
-                    <div className="card-cta">Cast your vote →</div>
+                  <div>
+                    <div className="card-forecasters">{shareModal.totalVotes} {t.forecastersVoted}</div>
+                    <div className="card-cta">{t.castVote}</div>
                   </div>
                   <div className="card-url-box">
-                    <div className="card-url-label">Visit us at</div>
+                    <div className="card-url-label">{t.visitUs}</div>
                     <div className="card-url-value">nepo<span>market</span>.com</div>
                   </div>
                 </div>
@@ -406,19 +541,19 @@ export default function PollsPage() {
               {/* DOWNLOAD */}
               <div className="action-row">
                 <button className="dl-btn" onClick={downloadCard} disabled={downloading}>
-                  {downloading ? 'Generating...' : '⬇ Download Card'}
+                  {downloading ? t.generating : `⬇ ${t.download}`}
                 </button>
                 <button className={`copy-btn ${copied ? 'copied' : ''}`} onClick={copyLink}>
-                  {copied ? '✓ Copied!' : '🔗 Copy Link'}
+                  {copied ? `✓ ${t.copied}` : `🔗 ${t.copyLink}`}
                 </button>
               </div>
 
               {/* SOCIAL */}
-              <div className="social-label">Share directly</div>
+              <div className="social-label">{t.shareDirect}</div>
               <div className="social-row">
                 <button className="soc-btn soc-x" onClick={shareToX}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.259 5.631 5.905-5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                  Post
+                  {t.post}
                 </button>
                 <button className="soc-btn soc-fb" onClick={shareToFacebook}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
@@ -429,9 +564,7 @@ export default function PollsPage() {
                   Instagram
                 </button>
               </div>
-              <p className="share-note">
-                Instagram: tap Instagram → download card → open the app → Story → select from gallery.
-              </p>
+              <p className="share-note">{t.igNote}</p>
             </div>
           </div>
         </div>
