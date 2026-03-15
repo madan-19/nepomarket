@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useLanguage, type Lang } from '../../lib/useLanguage'
 
 // ── Types ─────────────────────────────────────────────────────
 interface Option { id: string; label: string; sort_order: number }
@@ -12,8 +13,6 @@ interface Poll {
   totalVotes: number
   userVote: string | null
 }
-
-type Lang = 'en' | 'ne'
 
 // ── i18n ──────────────────────────────────────────────────────
 // DB fields support "English|||नेपाली" — if no delimiter, same text for both
@@ -111,15 +110,9 @@ export default function PollsPage() {
   const captureRef = useRef<HTMLDivElement>(null)
   const [downloading, setDownloading] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [lang, setLang] = useState<Lang>('en')
-  const [langFlip, setLangFlip] = useState(false)
+  const { lang, langFlip, toggleLang } = useLanguage()
 
   const t = UI[lang]
-
-  function toggleLang() {
-    setLangFlip(true)
-    setTimeout(() => { setLang(l => l === 'en' ? 'ne' : 'en'); setLangFlip(false) }, 200)
-  }
 
   // ── Supabase logic ──────────────────────────────────────────
   useEffect(() => {

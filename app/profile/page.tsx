@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useLanguage } from '../../lib/useLanguage'
 
 export default function ProfilePage() {
   const [user, setUser] = useState<{ id: string; email: string } | null>(null)
@@ -10,6 +11,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const { lang, langFlip, toggleLang } = useLanguage()
 
   useEffect(() => { init() }, [])
 
@@ -65,6 +67,9 @@ export default function ProfilePage() {
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #0D0D0D; }
         input:focus { outline: none; border-color: rgba(220,20,60,0.5) !important; background: rgba(245,237,216,0.09) !important; }
+        @keyframes slideSwitch { 0%{transform:translateY(0);opacity:1} 40%{transform:translateY(-6px);opacity:0} 60%{transform:translateY(6px);opacity:0} 100%{transform:translateY(0);opacity:1} }
+        .lang-flip { animation: slideSwitch 0.4s ease; }
+        .lang-toggle:hover { border-color: rgba(220,20,60,0.5) !important; background: rgba(220,20,60,0.08) !important; }
       `}</style>
 
       {/* NAV */}
@@ -73,8 +78,12 @@ export default function ProfilePage() {
           Nepo<span style={{ color: '#DC143C' }}>market</span>
         </a>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <a href="/polls" style={{ fontFamily: "'DM Mono',monospace", fontSize: '0.65rem', color: 'rgba(245,237,216,0.4)', textDecoration: 'none', border: '1px solid rgba(245,237,216,0.12)', padding: '6px 14px', borderRadius: '4px' }}>← Polls</a>
-          <a href="/leaderboard" style={{ fontFamily: "'DM Mono',monospace", fontSize: '0.65rem', color: 'rgba(245,237,216,0.4)', textDecoration: 'none', border: '1px solid rgba(245,237,216,0.12)', padding: '6px 14px', borderRadius: '4px' }}>Leaderboard</a>
+          <button onClick={toggleLang} className="lang-toggle" style={{ background: 'rgba(245,237,216,0.04)', border: '1px solid rgba(245,237,216,0.14)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.25s' }}>
+            <span style={{ fontSize: '0.9rem' }}>{lang === 'en' ? '🇳🇵' : '🌐'}</span>
+            <span className={langFlip ? 'lang-flip' : ''} style={{ fontFamily: "'DM Mono',monospace", fontSize: '0.65rem', color: '#F5EDD8', fontWeight: 500 }}>{lang === 'en' ? 'नेपाली' : 'English'}</span>
+          </button>
+          <a href="/polls" style={{ fontFamily: "'DM Mono',monospace", fontSize: '0.65rem', color: 'rgba(245,237,216,0.4)', textDecoration: 'none', border: '1px solid rgba(245,237,216,0.12)', padding: '6px 14px', borderRadius: '4px' }}>← {lang === 'en' ? 'Polls' : 'मतदान'}</a>
+          <a href="/leaderboard" style={{ fontFamily: "'DM Mono',monospace", fontSize: '0.65rem', color: 'rgba(245,237,216,0.4)', textDecoration: 'none', border: '1px solid rgba(245,237,216,0.12)', padding: '6px 14px', borderRadius: '4px' }}>{lang === 'en' ? 'Leaderboard' : 'लिडरबोर्ड'}</a>
         </div>
       </nav>
 

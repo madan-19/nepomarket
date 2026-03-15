@@ -1,9 +1,77 @@
 'use client'
 import { useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
+import { useLanguage } from '../lib/useLanguage'
+
+const UI = {
+  en: {
+    navTag: 'Launching Soon · Nepal',
+    navLeaderboard: 'Leaderboard',
+    navPolls: 'Live Polls →',
+    eyebrow: "Nepal's Civic-Tech Platform",
+    h1a: 'What Nepal', h1b: 'Really', h1c: 'Thinks —', h1d: 'Live.',
+    heroSub: 'Real-time polls + Facebook & Instagram sentiment analysis.\nTrack whether the new government delivers. No gambling. No noise.\nJust crowd wisdom for Nepal\'s next chapter.',
+    cta1: 'See Live Polls →', cta2: 'Join Waitlist',
+    pollLabel: 'Live Forecast · Kathmandu',
+    pollQ: 'Will the RSP government end load-shedding in the Valley by 2027?',
+    opt1: 'Yes — Will deliver', opt2: 'Partial — Some progress', opt3: 'No — Broken promise',
+    pollForecasters: '4,812 forecasters', pollActivity: 'Nepal Pulse: 🔴 High Activity',
+    featuresEyebrow: 'Platform Features',
+    featuresH2: 'Everything Nepal needs to hold power accountable.',
+    features: [
+      { icon: '📊', title: 'Live Probability Polls', desc: 'Polymarket-style probability bars on real Nepali issues — politics, infrastructure, cricket, development. Vote and watch the crowd shift in real time.', num: '01' },
+      { icon: '🇳🇵', title: 'Nepal Pulse Dashboard', desc: 'Real-time sentiment scores scraped from public Facebook and Instagram data. See what Nepal is actually talking about — not what media wants you to think.', num: '02' },
+      { icon: '🏆', title: 'Accuracy Leaderboard', desc: 'Every vote is tracked. The best forecasters earn reputation points and badges. Who in Nepal has the sharpest political instincts?', num: '03' },
+      { icon: '📱', title: 'Shareable Story Cards', desc: 'One tap to share any poll result as an Instagram or Facebook story. Viral by design — built for how Nepal actually communicates online.', num: '04' },
+      { icon: '📰', title: 'Weekly Pulse Report', desc: 'A curated digest of shifting public mood sent to your inbox every Monday. The signal in the noise — in Nepali and English.', num: '05' },
+      { icon: '🔒', title: '100% Legal & Non-Monetary', desc: "No gambling. No real money. Fully compliant with Nepal's laws. This is civic entertainment and crowd wisdom — nothing more, nothing less.", num: '06' },
+    ],
+    stat1: 'Nepalis on\nFacebook', stat2: 'First-time voters\nin 2026 election', stat3: "Of Nepal's population\nunder age 24", stat4: 'Platforms doing\nthis right now',
+    waitlistEyebrow: 'Join the Waitlist',
+    waitlistH2a: 'Be first when', waitlistH2b: "Nepal's voice", waitlistH2c: 'goes live.',
+    waitlistDesc: "We're launching in the weeks after the 2026 election.\nEarly members get founding forecaster status,\npriority access, and permanent leaderboard badges.",
+    waitlistBtn: 'Notify Me', waitlistPlaceholder: 'your@email.com',
+    waitlistSuccess: "✓ You're on the list. We'll be in touch.",
+    footerTag: '© 2026 Nepomarket.com · What Nepal Really Thinks · Built for Nepal\'s next chapter',
+    langLabel: 'नेपाली',
+  },
+  ne: {
+    navTag: 'छिट्टै आउँदैछ · नेपाल',
+    navLeaderboard: 'लिडरबोर्ड',
+    navPolls: 'प्रत्यक्ष मतदान →',
+    eyebrow: 'नेपालको नागरिक-प्रविधि मञ्च',
+    h1a: 'नेपालले', h1b: 'वास्तवमा', h1c: 'के सोच्छ —', h1d: 'अहिले।',
+    heroSub: 'प्रत्यक्ष मतदान + फेसबुक र इन्स्टाग्राम भावना विश्लेषण।\nनयाँ सरकारले प्रतिज्ञा पूरा गर्छ कि गर्दैन — ट्र्याक गर्नुहोस्।\nजुवा छैन। आवाज मात्र। नेपालको भीड बुद्धि।',
+    cta1: 'प्रत्यक्ष मतदान हेर्नुहोस् →', cta2: 'प्रतीक्षा सूचीमा जोडिनुहोस्',
+    pollLabel: 'प्रत्यक्ष जनमत · काठमाडौं',
+    pollQ: 'के RSP सरकारले २०२७ सम्म उपत्यकामा लोडसेडिङ अन्त्य गर्छ?',
+    opt1: 'हो — पूरा गर्नेछ', opt2: 'आंशिक — केही प्रगति', opt3: 'होइन — झूटो वाचा',
+    pollForecasters: '४,८१२ मतदाताहरू', pollActivity: 'नेपाल पल्स: 🔴 उच्च सक्रियता',
+    featuresEyebrow: 'प्लेटफर्म सुविधाहरू',
+    featuresH2: 'नेपाललाई शक्तिलाई जवाफदेही बनाउन चाहिने सबै कुरा।',
+    features: [
+      { icon: '📊', title: 'प्रत्यक्ष सम्भावना मतदान', desc: 'वास्तविक नेपाली मुद्दाहरूमा Polymarket-शैलीका सम्भावना पट्टाहरू। मत दिनुहोस् र भीडको धारा हेर्नुहोस्।', num: '०१' },
+      { icon: '🇳🇵', title: 'नेपाल पल्स ड्यासबोर्ड', desc: 'सार्वजनिक फेसबुक र इन्स्टाग्राम डाटाबाट वास्तविक समयको भावना स्कोर। मिडियाले होइन, नेपाल वास्तवमा के भन्दैछ।', num: '०२' },
+      { icon: '🏆', title: 'शुद्धता लिडरबोर्ड', desc: 'हरेक मत ट्र्याक हुन्छ। उत्कृष्ट पूर्वानुमानकर्ताले प्रतिष्ठा अंक र ब्याजहरू पाउँछन्। नेपालमा सबैभन्दा तीखो राजनीतिक सूझबुझ कसको छ?', num: '०३' },
+      { icon: '📱', title: 'साझा गर्न मिल्ने स्टोरी कार्ड', desc: 'एक ट्यापले जुनसुकै मतदान परिणाम इन्स्टाग्राम वा फेसबुक स्टोरीको रूपमा साझा गर्नुहोस्। नेपाल अनलाइन सञ्चार गर्ने तरिकाले बनाइएको।', num: '०४' },
+      { icon: '📰', title: 'साप्ताहिक पल्स रिपोर्ट', desc: 'प्रत्येक सोमबार इनबक्समा जनमतको बदलिँदो धारको सारांश। नेपाली र अंग्रेजीमा — संकेत र आवाज।', num: '०५' },
+      { icon: '🔒', title: '१००% कानुनी र गैर-मौद्रिक', desc: 'जुवा छैन। वास्तविक पैसा छैन। नेपालको कानुनसँग पूर्ण अनुपालन। यो नागरिक मनोरञ्जन र भीड बुद्धि मात्र हो।', num: '०६' },
+    ],
+    stat1: 'नेपाली\nफेसबुकमा', stat2: '२०२६ चुनावमा\nपहिलो पटक मतदाता', stat3: 'नेपालको जनसंख्या\n२४ वर्षमुनि', stat4: 'अहिले यो गर्ने\nप्लेटफर्महरू',
+    waitlistEyebrow: 'प्रतीक्षा सूचीमा जोडिनुहोस्',
+    waitlistH2a: 'नेपालको', waitlistH2b: 'आवाज सुरु', waitlistH2c: 'हुँदा पहिले हुनुहोस्।',
+    waitlistDesc: '२०२६ को चुनावपछिको हप्तामा हामी सुरु गर्दैछौं।\nप्रारम्भिक सदस्यहरूले संस्थापक पूर्वानुमानकर्ता दर्जा,\nप्राथमिकता पहुँच र स्थायी लिडरबोर्ड ब्याज पाउँछन्।',
+    waitlistBtn: 'सूचित गर्नुहोस्', waitlistPlaceholder: 'your@email.com',
+    waitlistSuccess: '✓ तपाईं सूचीमा हुनुहुन्छ। हामी सम्पर्क गर्नेछौं।',
+    footerTag: '© २०२६ Nepomarket.com · नेपालले वास्तवमा के सोच्छ · नेपालको अर्को अध्यायका लागि',
+    langLabel: 'English',
+  },
+}
 
 export default function HomePage() {
   const fillsRef = useRef<NodeListOf<HTMLElement> | null>(null)
+  const { lang, langFlip, toggleLang } = useLanguage()
+  const t = UI[lang]
 
   useEffect(() => {
     const fills = document.querySelectorAll<HTMLElement>('.prob-fill')
@@ -133,6 +201,8 @@ export default function HomePage() {
         @keyframes fadeLeft { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        @keyframes slideSwitch { 0%{transform:translateY(0);opacity:1} 40%{transform:translateY(-6px);opacity:0} 60%{transform:translateY(6px);opacity:0} 100%{transform:translateY(0);opacity:1} }
+        .lang-flip { animation: slideSwitch 0.4s ease; }
         @media (max-width: 900px) {
           nav { padding: 16px 20px; }
           .hero { grid-template-columns: 1fr; padding: 100px 20px 60px; gap: 40px; }
@@ -158,25 +228,27 @@ export default function HomePage() {
       <nav>
         <a href="/" className="logo">Nepo<span>market</span></a>
         <div className="nav-right">
-          <div className="nav-tag">Launching Soon · Nepal</div>
-          <a href="/leaderboard" style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.65rem', color: 'rgba(245,237,216,0.4)', textDecoration: 'none', border: '1px solid rgba(245,237,216,0.12)', padding: '7px 14px', borderRadius: '4px' }}>Leaderboard</a>
-          <a href="/polls" className="nav-btn">Live Polls →</a>
+          <div className="nav-tag">{t.navTag}</div>
+          <button onClick={toggleLang} style={{ background: 'rgba(245,237,216,0.04)', border: '1px solid rgba(245,237,216,0.14)', borderRadius: '8px', padding: '7px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.25s' }}>
+            <span style={{ fontSize: '0.95rem' }}>{lang === 'en' ? '🇳🇵' : '🌐'}</span>
+            <span className={langFlip ? 'lang-flip' : ''} style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.72rem', color: '#F5EDD8', letterSpacing: '0.04em', fontWeight: 500 }}>{t.langLabel}</span>
+          </button>
+          <a href="/leaderboard" style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.65rem', color: 'rgba(245,237,216,0.4)', textDecoration: 'none', border: '1px solid rgba(245,237,216,0.12)', padding: '7px 14px', borderRadius: '4px' }}>{t.navLeaderboard}</a>
+          <a href="/polls" className="nav-btn">{t.navPolls}</a>
         </div>
       </nav>
 
       {/* HERO */}
       <section className="hero">
         <div>
-          <div className="eyebrow">Nepal's Civic-Tech Platform</div>
-          <h1>What Nepal<br /><em>Really</em> Thinks —<br />Live.</h1>
+          <div className="eyebrow">{t.eyebrow}</div>
+          <h1>{t.h1a}<br /><em>{t.h1b}</em> {t.h1c}<br />{t.h1d}</h1>
           <p className="hero-sub">
-            Real-time polls + Facebook & Instagram sentiment analysis.<br />
-            Track whether the new government delivers. No gambling. No noise.<br />
-            Just crowd wisdom for Nepal's next chapter.
+            {t.heroSub.split('\n').map((line, i) => <span key={i}>{line}{i < 2 && <br />}</span>)}
           </p>
           <div className="hero-ctas">
-            <a href="/polls" className="btn-primary">See Live Polls →</a>
-            <a href="#waitlist" className="btn-secondary">Join Waitlist</a>
+            <a href="/polls" className="btn-primary">{t.cta1}</a>
+            <a href="#waitlist" className="btn-secondary">{t.cta2}</a>
           </div>
         </div>
 
@@ -184,35 +256,33 @@ export default function HomePage() {
           <div className="poll-card">
             <div className="poll-label">
               <div className="live-dot"></div>
-              Live Forecast · Kathmandu
+              {t.pollLabel}
             </div>
-            <div className="poll-question">
-              Will the RSP government end load-shedding in the Valley by 2027?
-            </div>
+            <div className="poll-question">{t.pollQ}</div>
             <div className="prob-item">
               <div className="prob-header">
-                <span className="prob-label">Yes — Will deliver</span>
+                <span className="prob-label">{t.opt1}</span>
                 <span className="prob-pct">71%</span>
               </div>
               <div className="prob-track"><div className="prob-fill" data-w="71"></div></div>
             </div>
             <div className="prob-item">
               <div className="prob-header">
-                <span className="prob-label">Partial — Some progress</span>
+                <span className="prob-label">{t.opt2}</span>
                 <span className="prob-pct">20%</span>
               </div>
               <div className="prob-track"><div className="prob-fill alt" data-w="20"></div></div>
             </div>
             <div className="prob-item">
               <div className="prob-header">
-                <span className="prob-label">No — Broken promise</span>
+                <span className="prob-label">{t.opt3}</span>
                 <span className="prob-pct">9%</span>
               </div>
               <div className="prob-track"><div className="prob-fill alt" data-w="9" style={{opacity:0.5}}></div></div>
             </div>
             <div className="poll-meta">
-              <span>4,812 forecasters</span>
-              <span>Nepal Pulse: 🔴 High Activity</span>
+              <span>{t.pollForecasters}</span>
+              <span>{t.pollActivity}</span>
             </div>
           </div>
         </div>
@@ -236,17 +306,10 @@ export default function HomePage() {
 
       {/* FEATURES */}
       <section className="features">
-        <div className="section-eyebrow">Platform Features</div>
-        <h2>Everything Nepal needs to hold power accountable.</h2>
+        <div className="section-eyebrow">{t.featuresEyebrow}</div>
+        <h2>{t.featuresH2}</h2>
         <div className="features-grid">
-          {[
-            { icon: '📊', title: 'Live Probability Polls', desc: 'Polymarket-style probability bars on real Nepali issues — politics, infrastructure, cricket, development. Vote and watch the crowd shift in real time.', num: '01' },
-            { icon: '🇳🇵', title: 'Nepal Pulse Dashboard', desc: 'Real-time sentiment scores scraped from public Facebook and Instagram data. See what Nepal is actually talking about — not what media wants you to think.', num: '02' },
-            { icon: '🏆', title: 'Accuracy Leaderboard', desc: 'Every vote is tracked. The best forecasters earn reputation points and badges. Who in Nepal has the sharpest political instincts?', num: '03' },
-            { icon: '📱', title: 'Shareable Story Cards', desc: 'One tap to share any poll result as an Instagram or Facebook story. Viral by design — built for how Nepal actually communicates online.', num: '04' },
-            { icon: '📰', title: 'Weekly Pulse Report', desc: 'A curated digest of shifting public mood sent to your inbox every Monday. The signal in the noise — in Nepali and English.', num: '05' },
-            { icon: '🔒', title: '100% Legal & Non-Monetary', desc: "No gambling. No real money. Fully compliant with Nepal's laws. This is civic entertainment and crowd wisdom — nothing more, nothing less.", num: '06' },
-          ].map(f => (
+          {t.features.map(f => (
             <div className="feat" key={f.num}>
               <span className="feat-icon">{f.icon}</span>
               <h3>{f.title}</h3>
@@ -259,36 +322,34 @@ export default function HomePage() {
 
       {/* STATS */}
       <div className="stats">
-        <div className="stat"><div className="stat-num">17<span>.4M</span></div><div className="stat-label">Nepalis on<br />Facebook</div></div>
-        <div className="stat"><div className="stat-num">915<span>K</span></div><div className="stat-label">First-time voters<br />in 2026 election</div></div>
-        <div className="stat"><div className="stat-num">46<span>%</span></div><div className="stat-label">Of Nepal's population<br />under age 24</div></div>
-        <div className="stat"><div className="stat-num">0</div><div className="stat-label">Platforms doing<br />this right now</div></div>
+        <div className="stat"><div className="stat-num">17<span>.4M</span></div><div className="stat-label">{t.stat1.split('\n').map((l,i) => <span key={i}>{l}{i===0&&<br/>}</span>)}</div></div>
+        <div className="stat"><div className="stat-num">915<span>K</span></div><div className="stat-label">{t.stat2.split('\n').map((l,i) => <span key={i}>{l}{i===0&&<br/>}</span>)}</div></div>
+        <div className="stat"><div className="stat-num">46<span>%</span></div><div className="stat-label">{t.stat3.split('\n').map((l,i) => <span key={i}>{l}{i===0&&<br/>}</span>)}</div></div>
+        <div className="stat"><div className="stat-num">0</div><div className="stat-label">{t.stat4.split('\n').map((l,i) => <span key={i}>{l}{i===0&&<br/>}</span>)}</div></div>
       </div>
 
       {/* CTA / WAITLIST */}
       <section className="cta-section" id="waitlist">
         <div>
-          <div className="section-eyebrow">Join the Waitlist</div>
-          <h2>Be first when<br /><em>Nepal's voice</em><br />goes live.</h2>
+          <div className="section-eyebrow">{t.waitlistEyebrow}</div>
+          <h2>{t.waitlistH2a}<br /><em>{t.waitlistH2b}</em><br />{t.waitlistH2c}</h2>
         </div>
         <div className="cta-right">
           <p>
-            We're launching in the weeks after the 2026 election.<br />
-            Early members get founding forecaster status,<br />
-            priority access, and permanent leaderboard badges.
+            {t.waitlistDesc.split('\n').map((line, i) => <span key={i}>{line}{i < 2 && <br />}</span>)}
           </p>
           <div className="waitlist-form-2">
-            <input type="email" id="email2" placeholder="your@email.com" />
-            <button onClick={() => joinWaitlist('email2', 'success2')}>Notify Me</button>
+            <input type="email" id="email2" placeholder={t.waitlistPlaceholder} />
+            <button onClick={() => joinWaitlist('email2', 'success2')}>{t.waitlistBtn}</button>
           </div>
-          <p className="success-msg-2" id="success2">✓ You're on the list. We'll be in touch.</p>
+          <p className="success-msg-2" id="success2">{t.waitlistSuccess}</p>
         </div>
       </section>
 
       {/* FOOTER */}
       <footer>
         <a href="/" className="logo">Nepo<span>market</span></a>
-        <p>© 2026 Nepomarket.com · What Nepal Really Thinks · Built for Nepal's next chapter</p>
+        <p>{t.footerTag}</p>
       </footer>
     </>
   )

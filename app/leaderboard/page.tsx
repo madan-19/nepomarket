@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useLanguage, type Lang } from '../../lib/useLanguage'
 
 // ── Types ─────────────────────────────────────────────────────
 interface LeaderEntry {
@@ -13,8 +14,6 @@ interface LeaderEntry {
   score: number
   badge: { emoji: string; label: string; labelNe: string; color: string }
 }
-
-type Lang = 'en' | 'ne'
 
 // ── i18n ──────────────────────────────────────────────────────
 const UI: Record<Lang, Record<string, string>> = {
@@ -84,15 +83,9 @@ export default function LeaderboardPage() {
   const [user, setUser] = useState<{ id: string; email: string } | null>(null)
   const [userRank, setUserRank] = useState<LeaderEntry | null>(null)
   const [loading, setLoading] = useState(true)
-  const [lang, setLang] = useState<Lang>('en')
-  const [langFlip, setLangFlip] = useState(false)
+  const { lang, langFlip, toggleLang } = useLanguage()
 
   const t = UI[lang]
-
-  function toggleLang() {
-    setLangFlip(true)
-    setTimeout(() => { setLang(l => l === 'en' ? 'ne' : 'en'); setLangFlip(false) }, 200)
-  }
 
   // ── Supabase: Compute leaderboard from raw votes ────────────
   useEffect(() => { init() }, [])
