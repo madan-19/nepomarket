@@ -9,10 +9,10 @@ const UI = {
     navLeaderboard: 'Leaderboard',
     navPolls: 'Live Polls →',
     eyebrow: "Nepal's Civic-Tech Platform",
-    h1a: 'What Nepal', h1b: 'Really', h1c: 'Thinks —', h1d: 'Live.',
+    h1a: 'What Nepal 🇳🇵', h1b: 'Really', h1c: 'Thinks —', h1d: 'Live.',
     heroSub: 'Real-time polls + Facebook & Instagram sentiment analysis.\nTrack whether the new government delivers. No gambling. No noise.\nJust crowd wisdom for Nepal\'s next chapter.',
     cta1: 'See Live Polls →', cta2: 'Join Waitlist',
-    pollLabel: 'Live Forecast · Kathmandu',
+    pollLabel: 'Live Forecast · Kathmandu Valley 🇳🇵',
     pollQ: 'Will the RSP government end load-shedding in the Valley by 2027?',
     opt1: 'Yes — Will deliver', opt2: 'Partial — Some progress', opt3: 'No — Broken promise',
     pollForecasters: '4,812 forecasters', pollActivity: 'Nepal Pulse: 🔴 High Activity',
@@ -40,10 +40,10 @@ const UI = {
     navLeaderboard: 'लिडरबोर्ड',
     navPolls: 'प्रत्यक्ष मतदान →',
     eyebrow: 'नेपालको नागरिक-प्रविधि मञ्च',
-    h1a: 'नेपालले', h1b: 'वास्तवमा', h1c: 'के सोच्छ —', h1d: 'अहिले।',
+    h1a: 'नेपाल 🇳🇵 ले', h1b: 'वास्तवमा', h1c: 'के सोच्छ —', h1d: 'अहिले।',
     heroSub: 'प्रत्यक्ष मतदान + फेसबुक र इन्स्टाग्राम भावना विश्लेषण।\nनयाँ सरकारले प्रतिज्ञा पूरा गर्छ कि गर्दैन — ट्र्याक गर्नुहोस्।\nजुवा छैन। आवाज मात्र। नेपालको भीड बुद्धि।',
     cta1: 'प्रत्यक्ष मतदान हेर्नुहोस् →', cta2: 'प्रतीक्षा सूचीमा जोडिनुहोस्',
-    pollLabel: 'प्रत्यक्ष जनमत · काठमाडौं',
+    pollLabel: 'प्रत्यक्ष जनमत · काठमाडौं उपत्यका 🇳🇵',
     pollQ: 'के RSP सरकारले २०२७ सम्म उपत्यकामा लोडसेडिङ अन्त्य गर्छ?',
     opt1: 'हो — पूरा गर्नेछ', opt2: 'आंशिक — केही प्रगति', opt3: 'होइन — झूटो वाचा',
     pollForecasters: '४,८१२ मतदाताहरू', pollActivity: 'नेपाल पल्स: 🔴 उच्च सक्रियता',
@@ -116,6 +116,15 @@ export default function HomePage() {
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
           pointer-events: none; z-index: 0; opacity: 0.6;
         }
+        body::after {
+          content: ''; position: fixed; inset: 0;
+          background: linear-gradient(135deg,
+            rgba(220,20,60,0.055) 0%,
+            transparent 38%,
+            rgba(0,56,147,0.045) 65%,
+            rgba(255,255,255,0.018) 100%);
+          pointer-events: none; z-index: 0;
+        }
         nav {
           position: fixed; top: 0; left: 0; right: 0; z-index: 100;
           display: flex; justify-content: space-between; align-items: center;
@@ -148,8 +157,16 @@ export default function HomePage() {
         .form-note { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: rgba(245,237,216,0.3); margin-top: 12px; letter-spacing: 0.05em; opacity: 0; animation: fadeUp 0.8s 0.8s forwards; }
         .success-msg { display: none; font-family: 'DM Mono', monospace; font-size: 0.75rem; color: #4CAF50; margin-top: 14px; letter-spacing: 0.05em; }
         .hero-right { opacity: 0; animation: fadeLeft 0.9s 0.6s forwards; }
-        .poll-card { background: var(--ink2); border: 1px solid var(--border); border-radius: 12px; padding: 28px; position: relative; overflow: hidden; }
+        .poll-card {
+          background: linear-gradient(var(--ink2), var(--ink2)) padding-box,
+                      linear-gradient(160deg, rgba(220,20,60,0.65) 0%, rgba(0,56,147,0.65) 52%, rgba(245,237,216,0.28) 100%) border-box;
+          border: 1px solid transparent;
+          border-radius: 12px; padding: 28px; position: relative; overflow: hidden;
+        }
         .poll-card::before { content: ''; position: absolute; top: -60px; right: -60px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(220,20,60,0.12), transparent 70%); pointer-events: none; }
+        .prob-fill.yes  { background: #22C55E; }
+        .prob-fill.blue { background: #2563EB; }
+        .prob-fill.no   { background: rgba(245,237,216,0.18); }
         .poll-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--red); margin-bottom: 16px; display: flex; align-items: center; gap: 6px; }
         .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); animation: pulse 1.5s infinite; }
         .poll-question { font-family: 'Instrument Serif', serif; font-size: 1.25rem; line-height: 1.35; color: var(--cream); margin-bottom: 24px; }
@@ -262,23 +279,23 @@ export default function HomePage() {
             <div className="prob-item">
               <div className="prob-header">
                 <span className="prob-label">{t.opt1}</span>
-                <span className="prob-pct">71%</span>
+                <span className="prob-pct" style={{color:'#22C55E'}}>71%</span>
               </div>
-              <div className="prob-track"><div className="prob-fill" data-w="71"></div></div>
+              <div className="prob-track"><div className="prob-fill yes" data-w="71"></div></div>
             </div>
             <div className="prob-item">
               <div className="prob-header">
                 <span className="prob-label">{t.opt2}</span>
-                <span className="prob-pct">20%</span>
+                <span className="prob-pct" style={{color:'#60A5FA'}}>20%</span>
               </div>
-              <div className="prob-track"><div className="prob-fill alt" data-w="20"></div></div>
+              <div className="prob-track"><div className="prob-fill blue" data-w="20"></div></div>
             </div>
             <div className="prob-item">
               <div className="prob-header">
                 <span className="prob-label">{t.opt3}</span>
-                <span className="prob-pct">9%</span>
+                <span className="prob-pct" style={{color:'rgba(245,237,216,0.35)'}}>9%</span>
               </div>
-              <div className="prob-track"><div className="prob-fill alt" data-w="9" style={{opacity:0.5}}></div></div>
+              <div className="prob-track"><div className="prob-fill no" data-w="9"></div></div>
             </div>
             <div className="poll-meta">
               <span>{t.pollForecasters}</span>
