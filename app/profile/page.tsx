@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useLanguage } from '../../lib/useLanguage'
+import SiteFooter from '../../components/SiteFooter'
 
 export default function ProfilePage() {
   const [user, setUser] = useState<{ id: string; email: string } | null>(null)
@@ -150,6 +151,7 @@ export default function ProfilePage() {
           </button>
         </div>
       </div>
+      <SiteFooter />
     </main>
   )
 }

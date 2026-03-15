@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useLanguage } from '../lib/useLanguage'
+import SiteFooter from '../components/SiteFooter'
 
 const UI = {
   en: {
@@ -368,6 +369,7 @@ export default function HomePage() {
         <a href="/" className="logo">Nepo<span>market</span></a>
         <p>{t.footerTag}</p>
       </footer>
+      <SiteFooter />
     </>
   )
 }

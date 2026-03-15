@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import SiteFooter from '../../components/SiteFooter'
 
 export default function AuthPage() {
   const [email, setEmail] = useState('')
@@ -147,6 +148,7 @@ export default function AuthPage() {
           </>
         )}
       </div>
+      <SiteFooter />
     </main>
   )
 }

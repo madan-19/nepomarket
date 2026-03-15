@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useLanguage, type Lang } from '../../lib/useLanguage'
+import SiteFooter from '../../components/SiteFooter'
 
 // ── Types ─────────────────────────────────────────────────────
 interface Option { id: string; label: string; sort_order: number }
@@ -437,9 +438,7 @@ export default function PollsPage() {
       </div>
 
       {/* ── Footer ───────────────────────────────────────────── */}
-      <div style={{ textAlign:'center', padding:'24px 20px 32px', borderTop:'1px solid rgba(245,237,216,0.06)' }}>
-        <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.58rem', color:'rgba(245,237,216,0.15)', letterSpacing:'0.08em' }}>{t.footer} · <a href="/privacy" style={{ color:'rgba(245,237,216,0.25)', textDecoration:'underline', textUnderlineOffset:'3px', transition:'color 0.2s' }} onMouseEnter={e => (e.currentTarget.style.color = '#DC143C')} onMouseLeave={e => (e.currentTarget.style.color = 'rgba(245,237,216,0.25)')}>{t.privacyLabel}</a></span>
-      </div>
+      <SiteFooter />
 
       {/* ══ SHARE MODAL ══════════════════════════════════════════ */}
       {shareModal && (
