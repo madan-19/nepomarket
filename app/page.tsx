@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef } from 'react'
+import { supabase } from '../lib/supabase'
 
 export default function HomePage() {
   const fillsRef = useRef<NodeListOf<HTMLElement> | null>(null)
@@ -15,7 +16,7 @@ export default function HomePage() {
     return () => clearTimeout(timer)
   }, [])
 
-  function joinWaitlist(inputId: string, successId: string) {
+  async function joinWaitlist(inputId: string, successId: string) {
     const input = document.getElementById(inputId) as HTMLInputElement
     const success = document.getElementById(successId) as HTMLElement
     const email = input?.value.trim()
@@ -23,6 +24,7 @@ export default function HomePage() {
       if (input) { input.style.borderColor = 'rgba(220,20,60,0.8)'; setTimeout(() => input.style.borderColor = '', 1500) }
       return
     }
+    await supabase.from('waitlist').insert({ email })
     if (input) { input.value = ''; input.style.display = 'none' }
     const btn = input?.parentElement?.querySelector('button') as HTMLElement
     if (btn) btn.style.display = 'none'
@@ -157,6 +159,7 @@ export default function HomePage() {
         <a href="/" className="logo">Nepo<span>market</span></a>
         <div className="nav-right">
           <div className="nav-tag">Launching Soon · Nepal</div>
+          <a href="/leaderboard" style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.65rem', color: 'rgba(245,237,216,0.4)', textDecoration: 'none', border: '1px solid rgba(245,237,216,0.12)', padding: '7px 14px', borderRadius: '4px' }}>Leaderboard</a>
           <a href="/polls" className="nav-btn">Live Polls →</a>
         </div>
       </nav>

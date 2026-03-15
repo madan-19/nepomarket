@@ -121,8 +121,20 @@ export default function PollsPage() {
     setTimeout(() => { setLang(l => l === 'en' ? 'ne' : 'en'); setLangFlip(false) }, 200)
   }
 
-  // ── Supabase logic (untouched) ──────────────────────────────
-  useEffect(() => { init() }, [])
+  // ── Supabase logic ──────────────────────────────────────────
+  useEffect(() => {
+    init()
+    // Real-time: refresh polls whenever a new vote is cast
+    const channel = supabase
+      .channel('votes-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, () => {
+        supabase.auth.getUser().then(({ data: { user } }) => {
+          fetchPolls(user?.id || null)
+        })
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   async function init() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -327,7 +339,7 @@ export default function PollsPage() {
         <a href="/" style={{ textDecoration:'none', fontFamily:"'Instrument Serif',serif", fontSize:'1.35rem', color:'#F5EDD8', letterSpacing:'-0.01em' }}>
           {t.brand}<span style={{color:'#DC143C'}}>{t.brandAccent}</span>
         </a>
-        <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
           {/* Language Toggle */}
           <button className="lang-toggle" onClick={toggleLang}>
             <span style={{ fontSize:'0.95rem' }}>{lang === 'en' ? '🇳🇵' : '🌐'}</span>
@@ -335,14 +347,11 @@ export default function PollsPage() {
               {t.langLabel}
             </span>
           </button>
+          <a href="/leaderboard" style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.65rem', color:'rgba(245,237,216,0.4)', textDecoration:'none', border:'1px solid rgba(245,237,216,0.12)', padding:'6px 14px', borderRadius:'4px' }}>🏆</a>
           {user ? (
-            <>
-              <span style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.62rem', color:'rgba(245,237,216,0.35)' }}>{user.email}</span>
-              <button onClick={async () => { await supabase.auth.signOut(); window.location.reload() }}
-                style={{ background:'transparent', border:'1px solid rgba(245,237,216,0.12)', color:'rgba(245,237,216,0.4)', fontFamily:"'DM Mono',monospace", fontSize:'0.65rem', padding:'6px 14px', borderRadius:'4px', cursor:'pointer' }}>
-                {t.signOut}
-              </button>
-            </>
+            <a href="/profile" style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.65rem', color:'rgba(245,237,216,0.4)', textDecoration:'none', border:'1px solid rgba(245,237,216,0.12)', padding:'6px 14px', borderRadius:'4px' }}>
+              {user.email.split('@')[0]}
+            </a>
           ) : (
             <a href="/auth" style={{ background:'#DC143C', color:'#F5EDD8', fontFamily:"'Syne',sans-serif", fontSize:'0.75rem', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', padding:'8px 18px', borderRadius:'4px', textDecoration:'none' }}>
               {t.signInBtn}

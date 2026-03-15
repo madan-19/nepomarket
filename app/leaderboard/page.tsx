@@ -138,14 +138,20 @@ export default function LeaderboardPage() {
       }
     })
 
+    // 3b. Fetch display names from profiles
+    const userIds = Object.keys(userMap)
+    const { data: profilesData } = await supabase
+      .from('profiles').select('user_id, username').in('user_id', userIds)
+    const profileMap: Record<string, string> = {}
+    ;(profilesData || []).forEach(p => { profileMap[p.user_id] = p.username })
+
     // 4. Build ranked array
     const ranked: LeaderEntry[] = Object.entries(userMap)
       .map(([uid, stats]) => {
         const accuracy = stats.total > 0 ? Math.round((stats.majority / stats.total) * 100) : 0
-        const score = Math.round(accuracy * 0.1 * 10) + stats.total  // (accuracy% / 10) * 10 + total = accuracy + total
-        const username = uid === authUser?.id
-          ? (authUser.email || 'You').split('@')[0]
-          : `Forecaster ${uid.slice(0, 5)}`
+        const score = Math.round(accuracy * 0.1 * 10) + stats.total
+        const username = profileMap[uid]
+          || (uid === authUser?.id ? (authUser.email || 'You').split('@')[0] : `Forecaster ${uid.slice(0, 5)}`)
         return {
           rank: 0,
           user_id: uid,
@@ -280,10 +286,9 @@ export default function LeaderboardPage() {
           </button>
           <a href="/polls" style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.65rem', color:'rgba(245,237,216,0.4)', textDecoration:'none', border:'1px solid rgba(245,237,216,0.12)', padding:'6px 14px', borderRadius:'4px' }}>{t.polls}</a>
           {user ? (
-            <button onClick={async () => { await supabase.auth.signOut(); window.location.reload() }}
-              style={{ background:'transparent', border:'1px solid rgba(245,237,216,0.12)', color:'rgba(245,237,216,0.4)', fontFamily:"'DM Mono',monospace", fontSize:'0.65rem', padding:'6px 14px', borderRadius:'4px', cursor:'pointer' }}>
-              {t.signOut}
-            </button>
+            <a href="/profile" style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.65rem', color:'rgba(245,237,216,0.4)', textDecoration:'none', border:'1px solid rgba(245,237,216,0.12)', padding:'6px 14px', borderRadius:'4px' }}>
+              {user.email.split('@')[0]}
+            </a>
           ) : (
             <a href="/auth" style={{ background:'#DC143C', color:'#F5EDD8', fontFamily:"'Syne',sans-serif", fontSize:'0.75rem', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', padding:'8px 18px', borderRadius:'4px', textDecoration:'none' }}>
               {t.signInBtn}
