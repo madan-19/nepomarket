@@ -214,7 +214,6 @@ export default function HomePage() {
           .stats { grid-template-columns: repeat(2, 1fr); }
           .stat { border-right: none; border-bottom: 1px solid var(--border); }
           .cta-section { grid-template-columns: 1fr; padding: 60px 20px; gap: 32px; }
-          footer { flex-direction: column; gap: 12px; text-align: center; padding: 24px 20px; }
           .pulse-strip { padding: 14px 20px; }
         }
         @media (max-width: 480px) {
