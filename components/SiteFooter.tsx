@@ -10,9 +10,9 @@ const copy = {
       { label: 'Leaderboard',   href: '/leaderboard' },
       { label: 'Hot News',      href: '/hot-news' },
       { label: 'AI Prediction', href: '/ai-prediction' },
-      { label: 'Privacy & Policy', href: '/privacy' },
     ],
     copy: '© 2026 Nepomarket.com · Non-monetary civic platform · Nepal',
+    privacy: 'Privacy & Policy',
   },
   ne: {
     tagline: 'नेपालले वास्तवमा के सोच्छ — अहिले।',
@@ -22,9 +22,9 @@ const copy = {
       { label: 'लिडरबोर्ड',          href: '/leaderboard' },
       { label: 'ताजा समाचार',        href: '/hot-news' },
       { label: 'AI भविष्यवाणी',      href: '/ai-prediction' },
-      { label: 'गोपनीयता र नीति',    href: '/privacy' },
     ],
     copy: '© २०२६ Nepomarket.com · गैर-मौद्रिक नागरिक मञ्च · नेपाल',
+    privacy: 'गोपनीयता र नीति',
   },
 }
 
@@ -42,7 +42,9 @@ export default function SiteFooter() {
         @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap');
         .sf-link { font-family:'DM Mono',monospace; font-size:0.68rem; color:rgba(245,237,216,0.35); text-decoration:none; letter-spacing:0.04em; transition:color 0.2s; white-space:nowrap; }
         .sf-link:hover { color:#DC143C; }
-        @media(max-width:640px){ .sf-top{ flex-direction:column !important; gap:28px !important; } .sf-links{ flex-wrap:wrap !important; } }
+        .sf-privacy { font-family:'DM Mono',monospace; font-size:0.6rem; color:rgba(245,237,216,0.3); text-decoration:underline; text-underline-offset:3px; text-decoration-color:rgba(245,237,216,0.15); letter-spacing:0.06em; transition:color 0.2s, text-decoration-color 0.2s; }
+        .sf-privacy:hover { color:#DC143C; text-decoration-color:#DC143C; }
+        @media(max-width:640px){ .sf-top{ flex-direction:column !important; gap:28px !important; } .sf-links{ flex-wrap:wrap !important; } .sf-bottom{ flex-direction:column !important; gap:10px !important; text-align:center; } }
       `}</style>
 
       {/* Top row — logo + nav links */}
@@ -70,10 +72,13 @@ export default function SiteFooter() {
       {/* Divider */}
       <div style={{ height:'1px', background:'linear-gradient(90deg, rgba(220,20,60,0.25) 0%, rgba(245,237,216,0.06) 40%, rgba(0,56,147,0.2) 100%)', marginBottom:'20px' }} />
 
-      {/* Bottom row — copyright */}
-      <p style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.58rem', color:'rgba(245,237,216,0.18)', letterSpacing:'0.06em', textAlign:'center' }}>
-        {t.copy}
-      </p>
+      {/* Bottom row — copyright + privacy link */}
+      <div className="sf-bottom" style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'16px' }}>
+        <p style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.58rem', color:'rgba(245,237,216,0.18)', letterSpacing:'0.06em' }}>
+          {t.copy}
+        </p>
+        <a href="/privacy" className="sf-privacy">{t.privacy}</a>
+      </div>
     </footer>
   )
 }
