@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import SiteNav from '../../components/SiteNav'
 import SiteFooter from '../../components/SiteFooter'
 
 export default function AuthPage() {
@@ -39,14 +38,34 @@ export default function AuthPage() {
         @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         input:focus { outline: none; border-color: rgba(220,20,60,0.5) !important; }
+        .close-btn { transition: transform 0.15s, opacity 0.15s; }
+        .close-btn:hover { transform: scale(1.15); opacity: 1 !important; }
       `}</style>
 
-      <SiteNav />
+      {/* ✕ Escape button */}
+      <a
+        href="/"
+        className="close-btn"
+        style={{
+          position: 'fixed', top: '20px', right: '24px', zIndex: 300,
+          width: '40px', height: '40px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(220,20,60,0.12)',
+          border: '1px solid rgba(220,20,60,0.35)',
+          borderRadius: '50%',
+          color: '#DC143C', fontSize: '1.1rem', fontWeight: 700,
+          textDecoration: 'none', lineHeight: 1,
+          opacity: 0.85,
+        }}
+        aria-label="Close"
+      >
+        ✕
+      </a>
 
-      {/* Centered card area — grows to fill space between nav and footer */}
+      {/* Centered card */}
       <div style={{
         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '100px 20px 40px',
+        padding: '40px 20px',
       }}>
         <div style={{
           background: '#1A1A1A', border: '1px solid rgba(245,237,216,0.12)',
@@ -89,21 +108,11 @@ export default function AuthPage() {
               <p style={{
                 fontFamily: "'DM Mono', monospace", fontSize: '0.72rem',
                 color: 'rgba(245,237,216,0.45)', lineHeight: 1.8,
-                marginBottom: '24px'
+                marginBottom: '8px'
               }}>
                 We sent a magic link to <strong style={{ color: '#F5EDD8' }}>{email}</strong>.
                 Click it to sign in — no password needed.
               </p>
-              <a href="/" style={{
-                display: 'inline-block',
-                fontFamily: "'DM Mono', monospace", fontSize: '0.68rem',
-                color: 'rgba(245,237,216,0.4)', textDecoration: 'none',
-                border: '1px solid rgba(245,237,216,0.12)',
-                padding: '8px 18px', borderRadius: '4px',
-                transition: 'all 0.2s',
-              }}>
-                ← Back to Home
-              </a>
             </div>
           ) : (
             <>
