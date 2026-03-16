@@ -1,3 +1,7 @@
+'use client'
+import SiteNav from '../../components/SiteNav'
+import SiteFooter from '../../components/SiteFooter'
+
 export default function PrivacyPage() {
   return (
     <main style={{ background: '#0D0D0D', minHeight: '100vh', color: '#F5EDD8', fontFamily: "'Syne', sans-serif" }}>
@@ -13,13 +17,7 @@ export default function PrivacyPage() {
         a:hover { text-decoration: underline; }
       `}</style>
 
-      {/* NAV */}
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 28px', borderBottom: '1px solid rgba(245,237,216,0.1)', background: 'rgba(13,13,13,0.92)', backdropFilter: 'blur(14px)' }}>
-        <a href="/" style={{ textDecoration: 'none', fontFamily: "'Instrument Serif', serif", fontSize: '1.35rem', color: '#F5EDD8', letterSpacing: '-0.01em' }}>
-          Nepo<span style={{ color: '#DC143C' }}>market</span>
-        </a>
-        <a href="/polls" style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.65rem', color: 'rgba(245,237,216,0.4)', textDecoration: 'none', border: '1px solid rgba(245,237,216,0.12)', padding: '6px 14px', borderRadius: '4px' }}>← Polls</a>
-      </nav>
+      <SiteNav />
 
       <div style={{ maxWidth: '720px', margin: '0 auto', padding: '120px 24px 80px' }}>
 
@@ -99,12 +97,7 @@ export default function PrivacyPage() {
         </div>
       </div>
 
-      {/* FOOTER */}
-      <div style={{ textAlign: 'center', padding: '24px 20px 32px', borderTop: '1px solid rgba(245,237,216,0.06)' }}>
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.58rem', color: 'rgba(245,237,216,0.15)', letterSpacing: '0.08em' }}>
-          © 2026 Nepomarket.com · Non-monetary civic polling · Nepal
-        </span>
-      </div>
+      <SiteFooter />
     </main>
   )
 }

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useLanguage, type Lang } from '../../lib/useLanguage'
 import SiteFooter from '../../components/SiteFooter'
+import SiteNav from '../../components/SiteNav'
 
 // ── Types ─────────────────────────────────────────────────────
 interface LeaderEntry {
@@ -19,12 +20,10 @@ interface LeaderEntry {
 // ── i18n ──────────────────────────────────────────────────────
 const UI: Record<Lang, Record<string, string>> = {
   en: {
-    brand: 'Nepo', brandAccent: 'market',
     tagline: "Nepal's Best Forecasters",
     hero: 'The', heroAccent: 'Leaderboard', heroEnd: '',
     subtitle: 'Who has the sharpest instincts in Nepal? Rankings update in real time.',
-    langLabel: 'नेपाली',
-    signInBtn: 'Sign In', signOut: 'Sign Out', polls: '← Polls',
+    signOut: 'Sign Out', polls: '← Polls',
     loading: 'Loading...',
     yourRanking: 'Your Ranking', rank: 'Rank', score: 'Score', votes: 'Votes', accuracy: 'Accuracy',
     noRankingsTitle: 'No rankings yet',
@@ -36,19 +35,16 @@ const UI: Record<Lang, Record<string, string>> = {
     ctaTitle: 'Want to appear here?',
     ctaDesc: 'Sign in and start voting to earn your ranking.',
     ctaBtn: 'Sign In to Compete →',
-    footer: 'Nepomarket · Non-monetary civic polling', privacyLabel: 'Privacy & Policy',
     howTitle: 'How Scoring Works',
     howAccuracy: 'Accuracy = % of your votes on each poll\'s leading option',
     howScore: 'Score = (accuracy% × 10) + total votes',
     howBadge: 'Badges reflect your rank, vote count, and accuracy',
   },
   ne: {
-    brand: 'Nepo', brandAccent: 'market',
     tagline: 'नेपालका उत्कृष्ट पूर्वानुमानकर्ताहरू',
     hero: '', heroAccent: 'लिडरबोर्ड', heroEnd: '',
     subtitle: 'नेपालमा कसको सबैभन्दा तीखो राजनीतिक सूझबुझ छ? वास्तविक समयमा अपडेट।',
-    langLabel: 'English',
-    signInBtn: 'साइन इन', signOut: 'साइन आउट', polls: '← मतदान',
+    signOut: 'साइन आउट', polls: '← मतदान',
     loading: 'लोड हुँदैछ...',
     yourRanking: 'तपाईंको स्थान', rank: 'स्थान', score: 'अंक', votes: 'मतहरू', accuracy: 'शुद्धता',
     noRankingsTitle: 'अझै कुनै स्थान छैन',
@@ -60,7 +56,6 @@ const UI: Record<Lang, Record<string, string>> = {
     ctaTitle: 'यहाँ देखिन चाहनुहुन्छ?',
     ctaDesc: 'साइन इन गर्नुहोस् र आफ्नो स्थान कमाउन मत दिनुहोस्।',
     ctaBtn: 'प्रतिस्पर्धा गर्न साइन इन →',
-    footer: 'Nepomarket · गैर-मौद्रिक नागरिक मतदान', privacyLabel: 'गोपनीयता र नीति',
     howTitle: 'स्कोरिङ कसरी काम गर्छ',
     howAccuracy: 'शुद्धता = प्रत्येक मतदानमा अग्रणी विकल्पमा तपाईंको मतको %',
     howScore: 'अंक = (शुद्धता% × १०) + कुल मतहरू',
@@ -267,29 +262,7 @@ export default function LeaderboardPage() {
       `}</style>
 
       {/* ══ NAV ══════════════════════════════════════════════════ */}
-      <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, display:'flex', justifyContent:'space-between', alignItems:'center', padding:'16px 28px', borderBottom:'1px solid rgba(245,237,216,0.1)', background:'rgba(13,13,13,0.92)', backdropFilter:'blur(14px)' }}>
-        <a href="/" style={{ textDecoration:'none', fontFamily:"'Instrument Serif',serif", fontSize:'1.35rem', color:'#F5EDD8', letterSpacing:'-0.01em' }}>
-          {t.brand}<span style={{color:'#DC143C'}}>{t.brandAccent}</span>
-        </a>
-        <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-          <button className="lang-toggle" onClick={toggleLang}>
-            <span style={{ fontSize:'0.95rem' }}>{lang === 'en' ? '🇳🇵' : '🌐'}</span>
-            <span className={langFlip ? 'lang-flip' : ''} style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.72rem', color:'#F5EDD8', fontWeight:500 }}>
-              {t.langLabel}
-            </span>
-          </button>
-          <a href="/polls" style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.65rem', color:'rgba(245,237,216,0.4)', textDecoration:'none', border:'1px solid rgba(245,237,216,0.12)', padding:'6px 14px', borderRadius:'4px' }}>{t.polls}</a>
-          {user ? (
-            <a href="/profile" style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.65rem', color:'rgba(245,237,216,0.4)', textDecoration:'none', border:'1px solid rgba(245,237,216,0.12)', padding:'6px 14px', borderRadius:'4px' }}>
-              {user.email.split('@')[0]}
-            </a>
-          ) : (
-            <a href="/auth" style={{ background:'#DC143C', color:'#F5EDD8', fontFamily:"'Syne',sans-serif", fontSize:'0.75rem', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', padding:'8px 18px', borderRadius:'4px', textDecoration:'none' }}>
-              {t.signInBtn}
-            </a>
-          )}
-        </div>
-      </nav>
+      <SiteNav />
 
       {/* ══ CONTENT ══════════════════════════════════════════════ */}
       <div style={{ maxWidth:'760px', margin:'0 auto', padding:'100px 20px 80px' }}>

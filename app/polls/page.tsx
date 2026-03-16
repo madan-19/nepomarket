@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useLanguage, type Lang } from '../../lib/useLanguage'
 import SiteFooter from '../../components/SiteFooter'
+import SiteNav from '../../components/SiteNav'
 
 // ── Types ─────────────────────────────────────────────────────
 interface Option { id: string; label: string; sort_order: number }
@@ -26,14 +27,12 @@ function bitext(raw: string, lang: Lang): string {
 
 const UI: Record<Lang, Record<string, string>> = {
   en: {
-    brand: 'Nepo', brandAccent: 'market',
     tagline: 'Live Forecasts · Nepal',
     hero: 'What Nepal', heroAccent: 'Really', heroEnd: 'Thinks',
     welcomeBack: 'Welcome back,', welcomeSuffix: '. Vote on real issues below.',
     subtitle: 'Sign in to cast your vote. Watch the crowd shift in real time.',
-    langLabel: 'नेपाली',
     forecasters: 'forecasters', forecaster: 'forecaster',
-    signIn: 'Sign in to vote →', signInBtn: 'Sign In', signOut: 'Sign Out',
+    signIn: 'Sign in to vote →', signOut: 'Sign Out',
     closesIn: 'Closes in', closingSoon: 'Closing soon',
     live: 'Live Forecast', share: 'Share',
     noPolls: 'No active polls right now.',
@@ -48,17 +47,14 @@ const UI: Record<Lang, Record<string, string>> = {
     igNote: 'Instagram: tap Instagram → download card → open the app → Story → select from gallery.',
     livePoll: 'Live Poll', forecastersVoted: 'forecasters voted',
     castVote: 'Cast your vote →', visitUs: 'Visit us at',
-    footer: 'Nepomarket · Non-monetary civic polling', privacyLabel: 'Privacy & Policy',
   },
   ne: {
-    brand: 'Nepo', brandAccent: 'market',
     tagline: 'प्रत्यक्ष जनमत · नेपाल',
     hero: 'नेपालले वास्तवमा के', heroAccent: '', heroEnd: 'सोच्छ',
     welcomeBack: 'स्वागत छ,', welcomeSuffix: '। तलका मुद्दामा मत दिनुहोस्।',
     subtitle: 'मत दिन साइन इन गर्नुहोस्। भीडको धारा हेर्नुहोस्।',
-    langLabel: 'English',
     forecasters: 'मतदाताहरू', forecaster: 'मतदाता',
-    signIn: 'मत दिन साइन इन गर्नुहोस् →', signInBtn: 'साइन इन', signOut: 'साइन आउट',
+    signIn: 'मत दिन साइन इन गर्नुहोस् →', signOut: 'साइन आउट',
     closesIn: 'बन्द हुन बाँकी', closingSoon: 'छिट्टै बन्द हुँदैछ',
     live: 'प्रत्यक्ष जनमत', share: 'साझा',
     noPolls: 'अहिले कुनै सक्रिय मतदान छैन।',
@@ -73,7 +69,6 @@ const UI: Record<Lang, Record<string, string>> = {
     igNote: 'इन्स्टाग्राम: ट्याप गर्नुहोस् → कार्ड डाउनलोड → एप खोल्नुहोस् → स्टोरी → ग्यालेरीबाट छान्नुहोस्।',
     livePoll: 'प्रत्यक्ष मतदान', forecastersVoted: 'मतदाताहरूले मत दिए',
     castVote: 'आफ्नो मत दिनुहोस् →', visitUs: 'हामीलाई भेट्नुहोस्',
-    footer: 'Nepomarket · गैर-मौद्रिक नागरिक मतदान', privacyLabel: 'गोपनीयता र नीति',
   },
 }
 
@@ -329,30 +324,7 @@ export default function PollsPage() {
       `}</style>
 
       {/* ══ NAV ══════════════════════════════════════════════════ */}
-      <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, display:'flex', justifyContent:'space-between', alignItems:'center', padding:'16px 28px', borderBottom:'1px solid rgba(245,237,216,0.1)', background:'rgba(13,13,13,0.92)', backdropFilter:'blur(14px)' }}>
-        <a href="/" style={{ textDecoration:'none', fontFamily:"'Instrument Serif',serif", fontSize:'1.35rem', color:'#F5EDD8', letterSpacing:'-0.01em' }}>
-          {t.brand}<span style={{color:'#DC143C'}}>{t.brandAccent}</span>
-        </a>
-        <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-          {/* Language Toggle */}
-          <button className="lang-toggle" onClick={toggleLang}>
-            <span style={{ fontSize:'0.95rem' }}>{lang === 'en' ? '🇳🇵' : '🌐'}</span>
-            <span className={langFlip ? 'lang-flip' : ''} style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.72rem', color:'#F5EDD8', letterSpacing:'0.04em', fontWeight:500 }}>
-              {t.langLabel}
-            </span>
-          </button>
-          <a href="/leaderboard" style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.65rem', color:'rgba(245,237,216,0.4)', textDecoration:'none', border:'1px solid rgba(245,237,216,0.12)', padding:'6px 14px', borderRadius:'4px' }}>🏆</a>
-          {user ? (
-            <a href="/profile" style={{ fontFamily:"'DM Mono',monospace", fontSize:'0.65rem', color:'rgba(245,237,216,0.4)', textDecoration:'none', border:'1px solid rgba(245,237,216,0.12)', padding:'6px 14px', borderRadius:'4px' }}>
-              {user.email.split('@')[0]}
-            </a>
-          ) : (
-            <a href="/auth" style={{ background:'#DC143C', color:'#F5EDD8', fontFamily:"'Syne',sans-serif", fontSize:'0.75rem', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', padding:'8px 18px', borderRadius:'4px', textDecoration:'none' }}>
-              {t.signInBtn}
-            </a>
-          )}
-        </div>
-      </nav>
+      <SiteNav />
 
       {/* ══ CONTENT ══════════════════════════════════════════════ */}
       <div style={{ maxWidth:'760px', margin:'0 auto', padding:'100px 20px 80px' }}>

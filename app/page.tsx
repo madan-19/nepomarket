@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useLanguage } from '../lib/useLanguage'
 import SiteFooter from '../components/SiteFooter'
+import SiteNav from '../components/SiteNav'
 
 const UI = {
   en: {
@@ -126,18 +127,6 @@ export default function HomePage() {
             rgba(255,255,255,0.018) 100%);
           pointer-events: none; z-index: 0;
         }
-        nav {
-          position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-          display: flex; justify-content: space-between; align-items: center;
-          padding: 20px 40px; border-bottom: 1px solid var(--border);
-          background: rgba(13,13,13,0.85); backdrop-filter: blur(12px);
-        }
-        .logo { font-family: 'Instrument Serif', serif; font-size: 1.4rem; letter-spacing: -0.02em; color: var(--cream); text-decoration: none; }
-        .logo span { color: var(--red); }
-        .nav-right { display: flex; align-items: center; gap: 12px; }
-        .nav-tag { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid var(--border); padding: 5px 12px; border-radius: 20px; }
-        .nav-btn { font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; background: var(--red); color: var(--cream); border: none; padding: 8px 18px; border-radius: 4px; cursor: pointer; text-decoration: none; transition: background 0.2s; }
-        .nav-btn:hover { background: #b01030; }
         .hero { position: relative; z-index: 1; min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; align-items: center; padding: 120px 40px 80px; gap: 60px; max-width: 1300px; margin: 0 auto; }
         .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--red); margin-bottom: 28px; opacity: 0; animation: fadeUp 0.8s 0.2s forwards; }
         .eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--red); }
@@ -222,7 +211,6 @@ export default function HomePage() {
         @keyframes slideSwitch { 0%{transform:translateY(0);opacity:1} 40%{transform:translateY(-6px);opacity:0} 60%{transform:translateY(6px);opacity:0} 100%{transform:translateY(0);opacity:1} }
         .lang-flip { animation: slideSwitch 0.4s ease; }
         @media (max-width: 900px) {
-          nav { padding: 16px 20px; }
           .hero { grid-template-columns: 1fr; padding: 100px 20px 60px; gap: 40px; }
           .hero-right { animation: fadeUp 0.9s 0.6s forwards; }
           .features { padding: 60px 20px; }
@@ -232,7 +220,6 @@ export default function HomePage() {
           .cta-section { grid-template-columns: 1fr; padding: 60px 20px; gap: 32px; }
           footer { flex-direction: column; gap: 12px; text-align: center; padding: 24px 20px; }
           .pulse-strip { padding: 14px 20px; }
-          .nav-tag { display: none; }
         }
         @media (max-width: 480px) {
           .waitlist-form, .waitlist-form-2 { flex-direction: column; }
@@ -242,19 +229,7 @@ export default function HomePage() {
         }
       `}</style>
 
-      {/* NAV */}
-      <nav>
-        <a href="/" className="logo">Nepo<span>market</span></a>
-        <div className="nav-right">
-          <div className="nav-tag">{t.navTag}</div>
-          <button onClick={toggleLang} style={{ background: 'rgba(245,237,216,0.04)', border: '1px solid rgba(245,237,216,0.14)', borderRadius: '8px', padding: '7px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.25s' }}>
-            <span style={{ fontSize: '0.95rem' }}>{lang === 'en' ? '🇳🇵' : '🌐'}</span>
-            <span className={langFlip ? 'lang-flip' : ''} style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.72rem', color: '#F5EDD8', letterSpacing: '0.04em', fontWeight: 500 }}>{t.langLabel}</span>
-          </button>
-          <a href="/leaderboard" style={{ fontFamily: "'DM Mono', monospace", fontSize: '0.65rem', color: 'rgba(245,237,216,0.4)', textDecoration: 'none', border: '1px solid rgba(245,237,216,0.12)', padding: '7px 14px', borderRadius: '4px' }}>{t.navLeaderboard}</a>
-          <a href="/polls" className="nav-btn">{t.navPolls}</a>
-        </div>
-      </nav>
+      <SiteNav />
 
       {/* HERO */}
       <section className="hero">
