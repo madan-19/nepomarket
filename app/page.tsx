@@ -34,7 +34,6 @@ const UI = {
     waitlistDesc: "We're launching in the weeks after the 2026 election.\nEarly members get founding forecaster status,\npriority access, and permanent leaderboard badges.",
     waitlistBtn: 'Notify Me', waitlistPlaceholder: 'your@email.com',
     waitlistSuccess: "✓ You're on the list. We'll be in touch.",
-    footerTag: '© 2026 Nepomarket.com · What Nepal Really Thinks · Built for Nepal\'s next chapter',
     langLabel: 'नेपाली',
   },
   ne: {
@@ -65,7 +64,6 @@ const UI = {
     waitlistDesc: '२०२६ को चुनावपछिको हप्तामा हामी सुरु गर्दैछौं।\nप्रारम्भिक सदस्यहरूले संस्थापक पूर्वानुमानकर्ता दर्जा,\nप्राथमिकता पहुँच र स्थायी लिडरबोर्ड ब्याज पाउँछन्।',
     waitlistBtn: 'सूचित गर्नुहोस्', waitlistPlaceholder: 'your@email.com',
     waitlistSuccess: '✓ तपाईं सूचीमा हुनुहुन्छ। हामी सम्पर्क गर्नेछौं।',
-    footerTag: '© २०२६ Nepomarket.com · नेपालले वास्तवमा के सोच्छ · नेपालको अर्को अध्यायका लागि',
     langLabel: 'English',
   },
 }
@@ -202,9 +200,7 @@ export default function HomePage() {
         .waitlist-form-2 button { background: var(--red); border: 1px solid var(--red); color: var(--cream); font-family: 'Syne', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 14px 22px; border-radius: 0 4px 4px 0; cursor: pointer; transition: background 0.2s; }
         .waitlist-form-2 button:hover { background: #b01030; }
         .success-msg-2 { display: none; font-family: 'DM Mono', monospace; font-size: 0.75rem; color: #4CAF50; margin-top: 14px; letter-spacing: 0.05em; }
-        footer { position: relative; z-index: 1; border-top: 1px solid var(--border); padding: 32px 40px; display: flex; justify-content: space-between; align-items: center; }
-        footer p { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: rgba(245,237,216,0.25); letter-spacing: 0.05em; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeLeft { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
@@ -339,11 +335,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer>
-        <a href="/" className="logo">Nepo<span>market</span></a>
-        <p>{t.footerTag}</p>
-      </footer>
       <SiteFooter />
     </>
   )
