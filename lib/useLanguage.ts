@@ -15,12 +15,9 @@ export function useLanguage() {
   function toggleLang() {
     setLangFlip(true)
     setTimeout(() => {
-      setLang(l => {
-        const next: Lang = l === 'en' ? 'ne' : 'en'
-        localStorage.setItem('nepo-lang', next)
-        return next
-      })
-      setLangFlip(false)
+      const next: Lang = lang === 'en' ? 'ne' : 'en'
+      localStorage.setItem('nepo-lang', next)
+      window.location.reload()
     }, 200)
   }
 
